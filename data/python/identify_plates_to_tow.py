@@ -17,7 +17,7 @@ tow_cases = pd.read_csv('../processed/scofftow_case_information.csv')
 
 fine_agg = pd.read_csv('../processed/fine_agg.csv')
 
-fines_2024 = pd.read_csv('../processed/school_zone_fines_2024.csv')
+fine_agg_2024 = pd.read_csv('../processed/fine_agg_2024.csv')
 
 # *********************
 # identify plates to tow
@@ -41,51 +41,6 @@ print(f"""
 # *********************
 # identify plates to tow - 2024 and later
 # *********************
-
-
-fines_2024['issue_date'] = pd.to_datetime(
-    fines_2024['issue_date'], 
-    errors='coerce'
-)
-
-fines_2024['total_fine'] = (
-    fines_2024['fine_amount'] + 
-    fines_2024['penalty_amount'] + 
-    fines_2024['interest_amount'] - 
-    fines_2024['reduction_amount']
-)
-
-fines_2024['in_judgement'] = (
-    # fines have been issued for more than 75 days
-    (
-        (current_date - fines_2024['issue_date']).dt.days > judgement_date_diff_min
-    ) &
-    # fines are still outstanding
-    (
-        fines_2024['amount_due'] > 0
-    )
-)
-
-
-# Calculate total fines
-fine_agg_2024 = fines_2024.groupby(['plate', 'state', 'license_type']).agg(
-    total_fines = ('total_fine', 'sum'), 
-    amount_paid = ('payment_amount', 'sum'), 
-    amount_due = ('amount_due', 'sum'), 
-    violations = ('summons_number', 'nunique')
-)
-
-
-# Calculate fines in judgement (only where in_judgement is True)
-judgement_fines_2024 = fines_2024[fines_2024['in_judgement'] == True].groupby(['plate', 'state', 'license_type']).agg(
-    fines_in_judgement = ('amount_due', 'sum')
-)
-
-# Merge the two aggregations
-fine_agg_2024 = fine_agg_2024.join(judgement_fines_2024, how='left', on=['plate', 'state', 'license_type'])
-fine_agg_2024['fines_in_judgement'] = fine_agg_2024['fines_in_judgement'].fillna(0)
-
-fine_agg_2024 = fine_agg_2024.reset_index()
 
 
 plates_to_tow_2024 = fine_agg_2024[fine_agg_2024.fines_in_judgement > tow_threshold] 
