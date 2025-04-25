@@ -77,12 +77,12 @@ fine_agg_2024 = fines_2024.groupby(['plate', 'state', 'license_type']).agg(
 
 
 # Calculate fines in judgement (only where in_judgement is True)
-judgement_fines_2024 = fines_2024[fines_2024['in_judgement'] == True].groupby('plate').agg(
+judgement_fines_2024 = fines_2024[fines_2024['in_judgement'] == True].groupby(['plate', 'state', 'license_type']).agg(
     fines_in_judgement = ('amount_due', 'sum')
 )
 
 # Merge the two aggregations
-fine_agg_2024 = fine_agg_2024.join(judgement_fines_2024, how='left')
+fine_agg_2024 = fine_agg_2024.join(judgement_fines_2024, how='left', on=['plate', 'state', 'license_type'])
 fine_agg_2024['fines_in_judgement'] = fine_agg_2024['fines_in_judgement'].fillna(0)
 
 fine_agg_2024 = fine_agg_2024.reset_index()
