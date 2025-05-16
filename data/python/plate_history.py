@@ -62,7 +62,10 @@ joined = pd.concat([fines, tow_cases], ignore_index=True)
 
 joined = joined.sort_values(by=['plate_id', 'state', 'license_type', 'dt'])
 
-joined['type'] = joined['summons_number'].notna().map({True: 'fine', False: 'tow'})
+# Assign type based on summons_number and tow_date
+joined['type'] = 'fine'  # Default for violations
+joined.loc[joined['summons_number'].isna() & joined['tow_date'].notna(), 'type'] = 'tow'
+joined.loc[joined['summons_number'].isna() & joined['tow_date'].isna(), 'type'] = 'boot'
 
 joined = joined[
     ['plate_id', 'state', 'license_type', 'dt', 'type', 'issue_date', 'boot_date', 'tow_date', 'total_fine', 'amount_due', 'payment_amount', 'summons_number', 'case_number']
@@ -80,8 +83,10 @@ grouped = joined.groupby(['plate_id', 'state', 'license_type']).agg(
 grouped[grouped.violations > 0].sort_values(['boots_tows', 'violations'], ascending = False)
 
 
+interesting_plate = 'LBM8337'
 
-
-
+joined[
+    joined.plate_id == interesting_plate
+    ][['plate_id', 'state', 'license_type', 'dt', 'type']].to_csv(f'../processed/example_plate_{interesting_plate}.csv', index=False)
 
 
