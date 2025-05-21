@@ -1,3 +1,5 @@
+
+
 import pandas as pd
 import datetime as dt
 from tqdm import tqdm
@@ -132,3 +134,4 @@ fine_agg = aggregate_fines(fines)
 # *********************
 
 fine_agg.to_csv('../processed/fine_agg.csv', index=False)
+

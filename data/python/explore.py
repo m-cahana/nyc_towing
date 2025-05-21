@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # ******************
 # read in
 # ******************
-fines = pd.read_csv('../processed/school_zone_violations_2024.csv')
+fines = pd.read_csv('../processed/school_zone_fines_2024.csv')
 
 violations = pd.read_csv('../processed/school_zone_violations.csv')
 
