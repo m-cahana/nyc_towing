@@ -1,0 +1,22 @@
+# Created by venv; see https://docs.python.org/3/library/venv.html
+
+
+# data
+data/raw/*
+data/processed/*
+
+# venv
+bin/
+share/
+pyvenv.cfg
+lib/
+
+# __pycache__
+__pycache__/
+
+# .DS_Store
+.DS_Store
+
+etc/
+share/
+include/
