@@ -5,6 +5,7 @@
 
   // Constants
   const CIRCLE_RADIUS = 5;
+  const CIRCLE_OPACITY = 0.8;
 
   let svg;
   let width = 800;
@@ -207,7 +208,17 @@
       .attr('fill', 'var(--faint-blue)');
 
     // select top plate for each date
-    const topPlates = dateEntries.map(([date, plates]) => plates[plates.length - 1]);
+    const topPlates = dateEntries.map(([date, plates]) => {
+      // Find the plate with the most violations
+      const plateWithMostViolations = plates.reduce((max, current) => 
+        (current.violations > max.violations) ? current : max
+      , plates[0]);
+      
+      return {
+        ...plateWithMostViolations,
+        n_plates: plates.length
+      };
+    });
 
     nodes = svg.selectAll('circle')
       .data(topPlates)
@@ -217,11 +228,11 @@
         return x(d.tow_eligible_date);
       })
       .attr("cy", function (d) {
-        return y(d.cum_share);
+        return y(d.n_plates);
       })
       .attr('r', CIRCLE_RADIUS)
+      .attr('opacity', CIRCLE_OPACITY)
       .attr('class', 'leaf-circle')
-      .attr('opacity', 0.8)
       .on('mouseover', function(event, d) {
         d3.select(this).classed("leaf-circle-hover", true);
           // Create or update tooltip
@@ -234,7 +245,7 @@
           const tooltipContent = `
             <strong>Plate ID:</strong> ${d.plate}<br>
             <strong>Eligible to be towed starting:</strong> ${d.tow_eligible_date.toLocaleDateString()}<br>
-            <strong>One of ${plates.length} plates </strong> that became tow-eligible on this date
+            <strong>One of ${d.n_plates} plates </strong> that became tow-eligible on this date
           `;
           
           tooltip
@@ -288,9 +299,24 @@
       const y = regenerateAxes(data);
       if (!y) return;
       
+      // Remove the connecting line
+      svg.selectAll('.connect-line')
+        .transition()
+        .duration(500)
+        .attr('opacity', 0)
+        .remove();
+      
       // Update points - select the date groups and rebind data
       const dateGroups = d3.group(data, d => d.tow_eligible_date);
       const dateEntries = Array.from(dateGroups.entries());
+      
+       // Update opacity using the nodes object
+       nodes
+        .transition()
+        .duration(500)
+        .attr('cx', d => x(d.tow_eligible_date))
+        .attr('cy', d => y(d.n_plates))
+        .attr('opacity', CIRCLE_OPACITY);
       
       
       // Update line and label
@@ -326,15 +352,36 @@
       const augustGroups = d3.group(augustData, d => d.tow_eligible_date);
       const augustEntries = Array.from(augustGroups.entries());
       
+      // Create a line generator for connecting circles
+      const connectLine = d3.line()
+        .x(d => x(d.tow_eligible_date))
+        .y(d => y(d.n_plates))
+        .curve(d3.curveMonotoneX);
+
+      // Add or update the connecting line
+      svg.selectAll('.connect-line').remove(); // Remove existing line if any
+      svg.append('path')
+        .attr('class', 'connect-line')
+        .datum(augustEntries.map(([date, plates]) => ({
+          tow_eligible_date: date,
+          n_plates: plates.length
+        })))
+        .attr('d', connectLine)
+        .attr('fill', 'none')
+        .attr('stroke', 'var(--primary-blue)')
+        .attr('stroke-width', 2)
+        .attr('opacity', 0)
+        .transition()
+        .duration(500)
+        .attr('opacity', 0.5);
+      
       // Update opacity using the nodes object
       nodes
         .transition()
         .duration(500)
-        .attr('opacity', function(event, d) {
-          console.log(d);
-          const date = d.tow_eligible_date;
-          return (date.getMonth() === 7 && date.getFullYear() === 2024) ? 0.8 : 0;
-        });
+        .attr('cx', d => x(d.tow_eligible_date))
+        .attr('cy', d => y(d.n_plates))
+        .attr('opacity', (d) => (d.tow_eligible_date.getMonth() === 7 && d.tow_eligible_date.getFullYear() === 2024) ? CIRCLE_OPACITY : 0);
       
       // Update average line for August
       const totalPlates = augustData.length;
@@ -449,7 +496,7 @@
     height: 100vh;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: center;
     padding: 0 20px;
     position: relative;
     z-index: 2;
@@ -462,7 +509,7 @@
     padding: 20px;
     max-width: 350px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-right: 5%;
+    margin: 0 auto;
     pointer-events: auto;
   }
 
@@ -497,7 +544,6 @@
   /* Circle styles */
   :global(.leaf-circle) {
     fill: var(--primary-blue);
-    opacity: 0.9;
     stroke: none;
     stroke-width: 0;
   }
