@@ -45,7 +45,7 @@ data/processed/*
 bin/
 share/
 pyvenv.cfg
-lib/
+/lib/
 
 # __pycache__
 __pycache__/
