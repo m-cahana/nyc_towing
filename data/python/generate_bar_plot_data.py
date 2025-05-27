@@ -45,7 +45,7 @@ plate_id_agg['share_of_fines_paid'] = plate_id_agg['total_payment_amount'] / pla
 
 plate_id_agg = plate_id_agg.sort_values(by='total_violations', ascending=False)
 
-# **************
+# ******************
 # aggregate by bin
 # ******************
 

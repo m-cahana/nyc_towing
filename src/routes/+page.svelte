@@ -1,6 +1,7 @@
 <script>
     import Footer from "$lib/components/footer.svelte";
     import Barplot from "$lib/components/barplot.svelte";
+    import TowPlates from "$lib/components/tow_plates.svelte";
 
     import { onMount } from 'svelte';
 
@@ -18,6 +19,12 @@
     </p>
 
     <Barplot />
+
+    <p>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+    </p>
+
+    <TowPlates />
 
     <p>
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
