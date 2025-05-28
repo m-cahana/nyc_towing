@@ -90,11 +90,12 @@
             .attr("width", x.bandwidth())
             .attr("y", innerHeight)
             .attr("height", 0)
+            .attr("class", "bar")
             .attr("fill", "#305cde")
             .on("mouseover", function(event, d) {
                 d3.select("#tooltip")
                     .style("opacity", 1)
-                    .html(`School zone violations: ${d.violations_bin}<br>Share of fines paid: ${d.share_of_fines_paid.toFixed(1)}%`)
+                    .html(`<strong>School zone violations:</strong> ${d.violations_bin}<br><strong>Share of fines paid:</strong> ${d.share_of_fines_paid.toFixed(1)}%`)
                     .style("left", `${event.clientX + 15}px`)
                     .style("top", `${event.clientY - 40}px`);
             })
@@ -139,6 +140,13 @@
         height: 100%;
     }
 
+    :global(.bar) {
+        transition: fill 0.2s ease;
+    }
+
+    :global(.bar:hover) {
+        fill: var(--dark-blue);
+    }
 
     :global(.axis text) {
         font-family: Helvetica, Arial, sans-serif;

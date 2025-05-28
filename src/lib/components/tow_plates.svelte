@@ -11,9 +11,11 @@
         height = 500,
         CIRCLE_RADIUS = 5,
         CIRCLE_OPACITY = 0.8,
+        sharePlatesMajorityViolationsPostTowEligible = .25,
         margin = { top: 20, right: 20, bottom: 100, left: 60 },
     } = $props();
 
+  let topPlates;
   let svg;
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
@@ -45,7 +47,7 @@
     },
     {
       title: "",
-      content: "Hover over any dot to see the plate details."
+      content: "Let's look at one specific vehicle in detail."
     }
   ];
 
@@ -100,25 +102,28 @@
       .attr('width', width)
       .attr('height', height);
 
-    // Add axes first
+    // Filter data for August 2024
+    const augustData = data.filter(d => d.tow_eligible_date.getMonth() === 7 && d.tow_eligible_date.getFullYear() === 2024);
+    
+    // Add axes first with August-specific domain
     x = d3.scaleTime()
-      .domain(d3.extent(data, d => d.tow_eligible_date))
+      .domain(d3.extent(augustData, d => d.tow_eligible_date))
       .range([margin.left, width - margin.right]);
 
-    const dateGroups = d3.group(data, d => d.tow_eligible_date);
-    const maxPlatesPerDate = d3.max(Array.from(dateGroups.values()), plates => plates.length);
+    const augustGroups = d3.group(augustData, d => d.tow_eligible_date);
+    const maxPlatesPerDate = d3.max(Array.from(augustGroups.values()), plates => plates.length);
     const roundedMax = Math.ceil(maxPlatesPerDate / 5) * 5;
 
     const y = d3.scaleLinear()
       .domain([0, roundedMax])
       .range([height - margin.bottom, margin.top]);
 
-    // Create axis groups
+    // Create axis groups with August-specific formatting
     svg.append('g')
       .attr('class', 'x-axis axis')
       .attr('transform', `translate(0,${height - margin.bottom})`)
       .call(d3.axisBottom(x)
-        .tickFormat(d3.timeFormat("%B")));
+        .tickFormat(d3.timeFormat("%b %d")));
 
     // Add x-axis label
     svg.append('text')
@@ -126,7 +131,7 @@
       .attr('text-anchor', 'middle')
       .attr('x', width / 2)
       .attr('y', innerHeight + margin.bottom - 10)
-      .text('Date');
+      .text('Date in August 2024');
 
     svg.append('g')
       .attr('class', 'y-axis axis')
@@ -140,80 +145,26 @@
       .attr('transform', `rotate(-90) translate(${-innerHeight/2}, ${-margin.left + 75})`)
       .text('Number of plates entering judgement');
 
-    // Plot points for each date group with animation
+    // Get all date groups for creating all nodes
+    const dateGroups = d3.group(data, d => d.tow_eligible_date);
     const dateEntries = Array.from(dateGroups.entries());
 
-    // Calculate average plates per day
-    const totalPlates = data.length;
-    const totalDays = dateEntries.length;
-    const averagePlatesPerDay = totalPlates / totalDays;
-
-    // Create a line generator for the average
-    const line = d3.line()
-      .x(d => x(d.date))
-      .y(() => y(averagePlatesPerDay))
-      .curve(d3.curveMonotoneX);
-
-    // Create line data
-    const lineData = dateEntries.map(([date]) => ({
-      date: date
-    }));
-
-    // Add the line first (so it appears behind the circles)
-    svg.append('path')
-      .datum(lineData)
-      .attr('class', 'average-line')
-      .attr('d', line)
-      .attr('opacity', 0)
-      .transition()
-      .duration(500)
-      .attr('opacity', 1);
-
-    // Add average label
-    const averageLabel = svg.append('text')
-      .attr('class', 'average-label')
-      .attr('x', width - margin.right - 100)
-      .attr('y', y(averagePlatesPerDay) - 150)
-      .attr('text-anchor', 'end')
-      .text(`Average: ${Math.round(averagePlatesPerDay)} plates/day`)
-      .attr('opacity', 0)
-      .transition()
-      .duration(500)
-      .attr('opacity', 1);
-
-    // Get the text width and position
-    const labelWidth = averageLabel.node().getComputedTextLength();
-    const labelX = width - margin.right - 100;
-    const arrowX = labelX - (labelWidth / 2);
-
-    // Add arrow from label to line
-    svg.append('path')
-      .attr('class', 'average-arrow')
-      .attr('d', `M ${arrowX} ${y(averagePlatesPerDay) - 150} L ${arrowX} ${y(averagePlatesPerDay)}`)
-      .attr('stroke', 'var(--faint-blue)')
-      .attr('stroke-width', 1.5)
-      .attr('marker-end', 'url(#arrowhead)')
-      .attr('opacity', 0)
-      .transition()
-      .duration(500)
-      .attr('opacity', 1);
-
-    // Add arrowhead definition
-    svg.append('defs').append('marker')
-      .attr('id', 'arrowhead')
-      .attr('viewBox', '0 -5 10 10')
-      .attr('refX', 8)
-      .attr('refY', 0)
-      .attr('orient', 'auto')
-      .attr('markerWidth', 6)
-      .attr('markerHeight', 6)
-      .append('path')
-      .attr('d', 'M0,-5L10,0L0,5')
-      .attr('fill', 'var(--faint-blue)');
-
     // select top plate for each date
-    const topPlates = dateEntries.map(([date, plates]) => {
-      // Find the plate with the most violations
+    topPlates = dateEntries.map(([date, plates]) => {
+      // First, find plates that meet our criteria
+      const highPostViolationPlates = plates.filter(p => p.violations_post_tow_eligible > p.violations/2);
+      
+      // With set probability, select from high post-violation plates if any exist
+      if (highPostViolationPlates.length > 0 && Math.random() < sharePlatesMajorityViolationsPostTowEligible) {
+        // Randomly select one of the high post-violation plates
+        const selectedPlate = highPostViolationPlates[Math.floor(Math.random() * highPostViolationPlates.length)];
+        return {
+          ...selectedPlate,
+          n_plates: plates.length
+        };
+      }
+      
+      // Otherwise, find the plate with the most violations
       const plateWithMostViolations = plates.reduce((max, current) => 
         (current.violations > max.violations) ? current : max
       , plates[0]);
@@ -235,7 +186,7 @@
         return y(d.n_plates);
       })
       .attr('r', CIRCLE_RADIUS)
-      .attr('opacity', CIRCLE_OPACITY)
+      .attr('opacity', d => (d.tow_eligible_date.getMonth() === 7 && d.tow_eligible_date.getFullYear() === 2024) ? CIRCLE_OPACITY : 0)
       .attr('class', 'leaf-circle')
       .on('mouseover', function(event, d) {
         d3.select(this).classed("leaf-circle-hover", true);
@@ -248,6 +199,10 @@
           
           const tooltipContent = `
             <strong>Plate ID:</strong> ${d.plate}<br>
+            <strong>State:</strong> ${d.state}
+            <br>
+            <strong>License type:</strong> ${d.license_type}
+            <br>
             <strong>Eligible to be towed starting:</strong> ${d.tow_eligible_date.toLocaleDateString()}<br>
             <strong>One of ${d.n_plates} plates </strong> that became tow-eligible on this date
           `;
@@ -304,55 +259,7 @@
 
     // Add different effects based on the current section
     if (currentSection === 0) {
-      // Reset to full view
-      const y = regenerateAxes(data);
-      if (!y) return;
-      
-      // Remove the connecting line
-      svg.selectAll('.connect-line')
-        .transition()
-        .duration(500)
-        .attr('opacity', 0)
-        .remove();
-      
-      // Update points - select the date groups and rebind data
-      const dateGroups = d3.group(data, d => d.tow_eligible_date);
-      const dateEntries = Array.from(dateGroups.entries());
-      
-       // Update opacity using the nodes object
-       nodes
-        .transition()
-        .duration(500)
-        .attr('cx', d => x(d.tow_eligible_date))
-        .attr('cy', d => y(d.n_plates))
-        .attr('opacity', CIRCLE_OPACITY);
-      
-      
-      // Update line and label
-      const totalPlates = data.length;
-      const totalDays = dateEntries.length;
-      const averagePlatesPerDay = totalPlates / totalDays;
-      
-      const line = d3.line()
-        .x(d => x(d.date))
-        .y(() => y(averagePlatesPerDay))
-        .curve(d3.curveMonotoneX);
 
-      // Update the average line
-      svg.select('.average-line')
-        .datum(dateEntries.map(([date]) => ({ date: date })))
-        .transition()
-        .duration(500)
-        .attr('d', line);
-
-      // Update the average label
-      svg.select('.average-label')
-        .transition()
-        .duration(500)
-        .attr('y', y(averagePlatesPerDay) - 150)
-        .text(`Average: ${Math.round(averagePlatesPerDay)} plates/day`);
-    }
-    else if (currentSection === 1) {
       // Filter data for August 2024
       const augustData = data.filter(d => d.tow_eligible_date.getMonth() === 7 && d.tow_eligible_date.getFullYear() === 2024);
       const y = regenerateAxes(augustData, "%b %d");
@@ -391,30 +298,270 @@
         .attr('cx', d => x(d.tow_eligible_date))
         .attr('cy', d => y(d.n_plates))
         .attr('opacity', (d) => (d.tow_eligible_date.getMonth() === 7 && d.tow_eligible_date.getFullYear() === 2024) ? CIRCLE_OPACITY : 0);
+    }
       
-      // Update average line for August
-      const totalPlates = augustData.length;
-      const totalDays = augustEntries.length;
-      const averagePlatesPerDay = totalPlates / totalDays;
+    else if (currentSection === 1) {
+      // Reset to full view
+      const y = regenerateAxes(data);
+      if (!y) return;
       
+      // Show axes and labels again
+      svg.selectAll('.x-axis, .y-axis, .axis-label')
+        .transition()
+        .duration(500)
+        .attr('opacity', 1);
+      
+      // Remove stack labels
+      svg.selectAll('.stack-label')
+        .transition()
+        .duration(500)
+        .attr('opacity', 0)
+        .remove();
+      
+      // Remove the connecting line
+      svg.selectAll('.connect-line')
+        .transition()
+        .duration(500)
+        .attr('opacity', 0)
+        .remove();
+      
+      // Update points - select the date groups and rebind data
+      const dateGroups = d3.group(data, d => d.tow_eligible_date);
+      const dateEntries = Array.from(dateGroups.entries());
+      
+      // Create rolling 90-day average data
+      const rollingAverageData = dateEntries.map(([date, plates], i) => {
+        // Get the previous 90 days of data (or fewer if at the start)
+        const startIdx = Math.max(0, i - 89);
+        const windowData = dateEntries.slice(startIdx, i + 1);
+        
+        // Calculate average plates per day in the window
+        const totalPlates = windowData.reduce((sum, [_, plates]) => sum + plates.length, 0);
+        const avgPlates = totalPlates / windowData.length;
+        
+        return {
+          tow_eligible_date: date,
+          n_plates: avgPlates
+        };
+      });
 
-      const line = d3.line()
-        .x(d => x(d.date))
-        .y(() => y(averagePlatesPerDay))
+      // Create a line generator for the rolling average
+      const connectLine = d3.line()
+        .x(d => x(d.tow_eligible_date))
+        .y(d => y(d.n_plates))
         .curve(d3.curveMonotoneX);
 
-      // Update the average line
-      svg.select('.average-line')
-        .datum(augustEntries.map(([date]) => ({ date: date })))
+      // Add or update the connecting line
+      svg.selectAll('.connect-line').remove(); // Remove existing line if any
+      svg.append('path')
+        .attr('class', 'connect-line')
+        .datum(rollingAverageData)
+        .attr('d', connectLine)
+        .attr('fill', 'none')
+        .attr('stroke', 'var(--primary-blue)')
+        .attr('stroke-width', 2)
+        .attr('opacity', 0)
         .transition()
         .duration(500)
-        .attr('d', line);
+        .attr('opacity', 0.5);
+      
+      // Update opacity using the nodes object
+      nodes
+        .transition()
+        .duration(500)
+        .attr('cx', d => x(d.tow_eligible_date))
+        .attr('cy', d => y(d.n_plates))
+        .attr('opacity', CIRCLE_OPACITY);
+    }
 
-      // Update the average label
-      svg.select('.average-label')
+    if (currentSection === 2) {
+
+      // Hide axes and labels
+      svg.selectAll('.x-axis, .y-axis, .axis-label')
         .transition()
         .duration(500)
-        .text(`Average: ${Math.round(averagePlatesPerDay)} plates/day in August`);
+        .attr('opacity', 0);
+
+      svg.selectAll('.connect-line').remove(); // Remove existing line if any
+
+
+      // Define spiral boundaries
+      const binWidth = width / 3; // Width of each bin
+      const binHeight = height / 2; // Height of each bin
+      const leftBinX = width / 4; // Center of left bin
+      const rightBinX = 3 * width / 4; // Center of right bin
+      const binY = height / 2; // Center of bins vertically
+      const maxRadius = Math.min(binWidth, binHeight) / 2; // Use smaller dimension to ensure spiral fits
+
+      nodes
+        .transition()
+        .duration(500)
+        .attr('cx', d => {
+          const isRightSide = d.violations_post_tow_eligible > (d.violations) / 2;
+          const sameGroupNodes = Array.from(nodes.filter(n => 
+            (n.violations_post_tow_eligible > (n.violations) / 2) === isRightSide
+          ).data());
+          const groupIndex = sameGroupNodes.indexOf(d);
+          
+          // Calculate spiral parameters
+          const rotations = 4; // Number of complete rotations
+          const angle = (groupIndex / sameGroupNodes.length) * rotations * 2 * Math.PI;
+          const radius = (groupIndex / sameGroupNodes.length) * maxRadius;
+          
+          // Calculate position in spiral
+          const spiralX = Math.cos(angle) * radius;
+          const spiralY = Math.sin(angle) * radius;
+          
+          // Position in appropriate bin, mirror the right side
+          return isRightSide ? rightBinX - spiralX : leftBinX + spiralX;
+        })
+        .attr('cy', d => {
+          const isRightSide = d.violations_post_tow_eligible > (d.violations) / 2;
+          const sameGroupNodes = Array.from(nodes.filter(n => 
+            (n.violations_post_tow_eligible > (n.violations) / 2) === isRightSide
+          ).data());
+          const groupIndex = sameGroupNodes.indexOf(d);
+          
+          // Calculate spiral parameters
+          const rotations = 4; // Number of complete rotations
+          const angle = (groupIndex / sameGroupNodes.length) * rotations * 2 * Math.PI;
+          const radius = (groupIndex / sameGroupNodes.length) * maxRadius;
+          
+          // Calculate position in spiral
+          const spiralX = Math.cos(angle) * radius;
+          const spiralY = Math.sin(angle) * radius;
+          
+          // Position in appropriate bin
+          return binY + spiralY;
+        })
+        .attr('r', CIRCLE_RADIUS)
+        .attr('opacity', CIRCLE_OPACITY);
+
+      // Add labels for the stacks
+      svg.selectAll('.stack-label').remove();
+      
+      svg.append('text')
+        .attr('class', 'stack-label')
+        .attr('x', leftBinX)
+        .attr('y', binY - maxRadius - 60)
+        .attr('text-anchor', 'middle')
+        .text('Plates who mostly violate')
+        .attr('opacity', 0)
+        .transition()
+        .duration(500)
+        .attr('opacity', 1);
+
+        svg.append('text')
+        .attr('class', 'stack-label')
+        .attr('x', rightBinX)
+        .attr('y', binY - maxRadius - 60)
+        .attr('text-anchor', 'middle')
+        .text('Plates who mostly violate')
+        .attr('opacity', 0)
+        .transition()
+        .duration(500)
+        .attr('opacity', 1);
+
+      svg.append('text')
+        .attr('class', 'stack-label')
+        .attr('x', leftBinX)
+        .attr('y', binY - maxRadius - 40)
+        .attr('text-anchor', 'middle')
+        .text(`before entering judgement (${(1 - sharePlatesMajorityViolationsPostTowEligible) * 100}%)`)
+        .attr('opacity', 0)
+        .transition()
+        .duration(500)
+        .attr('opacity', 1);
+
+      svg.append('text')
+        .attr('class', 'stack-label')
+        .attr('x', rightBinX)
+        .attr('y', binY - maxRadius - 40)
+        .attr('text-anchor', 'middle')
+        .text(`after entering judgement (${sharePlatesMajorityViolationsPostTowEligible * 100}%)`)
+        .attr('opacity', 0)
+        .transition()
+        .duration(500)
+        .attr('opacity', 1);
+    }
+    
+    if (currentSection === 3) {
+      // Hide axes and labels
+      svg.selectAll('.x-axis, .y-axis, .axis-label')
+        .transition()
+        .duration(500)
+        .attr('opacity', 0);
+
+      svg.selectAll('.stack-label').remove(); // Remove existing line if any
+
+      // Select a random plate
+      const randomIndex = Math.floor(Math.random() * topPlates.length);
+      const targetNode = topPlates[randomIndex];
+      console.log(`Selected random plate: ${targetNode.plate}`);
+      if (!targetNode) return;
+
+      // Calculate zoom parameters
+      const zoomRadius = Math.min(width, height) * 0.5; // 40% of the smaller screen dimension
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      // Update all nodes
+      nodes
+        .transition()
+        .duration(1000)
+        .attr('cx', d => {
+          if (d.plate === targetNode.plate) {
+            return centerX;
+          }
+          // Move other nodes to the edges
+          const isRightSide = d.violations_post_tow_eligible > (d.violations) / 2;
+          return isRightSide ? width - 50 : 50;
+        })
+        .attr('cy', d => {
+          if (d.plate === targetNode.plate) {
+            return centerY;
+          }
+          // Distribute other nodes vertically
+          const index = topPlates.indexOf(d);
+          return (index % 2 === 0) ? 50 : height - 50;
+        })
+        .attr('r', d => d.plate === targetNode.plate ? zoomRadius : CIRCLE_RADIUS)
+        .attr('opacity', d => d.plate === targetNode.plate ? CIRCLE_OPACITY : 0);
+
+      // Add detailed label for the target node
+      svg.selectAll('.node-label').remove();
+      svg.append('text')
+        .attr('class', 'node-label')
+        .attr('x', centerX)
+        .attr('y', centerY - zoomRadius - 20)
+        .attr('text-anchor', 'middle')
+        .text(`Plate: ${targetNode.plate}`)
+        .attr('opacity', 0)
+        .transition()
+        .duration(500)
+        .attr('opacity', 1);
+
+      svg.append('text')
+        .attr('class', 'node-label')
+        .attr('x', centerX)
+        .attr('y', centerY - zoomRadius - 40)
+        .attr('text-anchor', 'middle')
+        .text(`Total Violations: ${targetNode.violations}`)
+        .attr('opacity', 0)
+        .transition()
+        .duration(500)
+        .attr('opacity', 1);
+
+      svg.append('text')
+        .attr('class', 'node-label')
+        .attr('x', centerX)
+        .attr('y', centerY - zoomRadius - 60)
+        .attr('text-anchor', 'middle')
+        .text(`Post-Tow Violations: ${targetNode.violations_post_tow_eligible}`)
+        .attr('opacity', 0)
+        .transition()
+        .duration(500)
+        .attr('opacity', 1);
     }
   }
 
@@ -569,17 +716,15 @@
     font-size: 18px;
   }
 
-  :global(.average-label) {
+  :global(.stack-label) {
     font-family: Helvetica, Arial, sans-serif;
     font-weight: 400;
-    font-size: 14px;
-    z-index: 10000;
-    fill: var(--faint-blue);
+    font-size: 18px;
   }
 
-  :global(.average-line) {
-    stroke:  var(--faint-blue);
-    stroke-width: 2;
-    stroke-dasharray: 5, 5;
+  :global(.node-label) {
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: 400;
+    font-size: 18px;
   }
 </style>
