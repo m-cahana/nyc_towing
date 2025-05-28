@@ -2,15 +2,19 @@
   import { onMount } from 'svelte';
   import * as d3 from 'd3';
   import Scrolly from "$lib/components/helpers/scrolly.svelte";
+  import { getFullPath } from '$lib/utils/paths';
 
-  // Constants
-  const CIRCLE_RADIUS = 5;
-  const CIRCLE_OPACITY = 0.8;
+  // Props for the component
+  let {
+        dataPath = '/data/plates_to_tow.csv',
+        width = 800,
+        height = 500,
+        CIRCLE_RADIUS = 5,
+        CIRCLE_OPACITY = 0.8,
+        margin = { top: 20, right: 20, bottom: 100, left: 60 },
+    } = $props();
 
   let svg;
-  let width = 800;
-  let height = 500;
-  let margin = { top: 20, right: 20, bottom: 100, left: 60 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
   let data = [];
@@ -270,23 +274,28 @@
 
   onMount(async () => {
     // Load and process the data
-    const response = await fetch('/data/plates_to_tow.csv');
-    const csvText = await response.text();
-    const parsedData = d3.csvParse(csvText);
+    const fullDataPath = getFullPath(dataPath);
+    console.log(`Loading data from: ${fullDataPath}`);
     
-    // Convert dates and filter for 2024, with error handling
-    data = parsedData
-      .filter(d => d && d.tow_eligible_date) // Filter out any null/undefined entries
-      .map(d => ({
-        ...d,
-        tow_eligible_date: new Date(d.tow_eligible_date)
-      }))
-      .filter(d => !isNaN(d.tow_eligible_date.getTime())) // Filter out invalid dates
-      .filter(d => d.tow_eligible_date.getFullYear() === 2024)
-      .sort((a, b) => a.tow_eligible_date - b.tow_eligible_date);
-
-    // Create visualization immediately
-    createVisualization();
+    d3.csv(fullDataPath)
+      .then(rawData => {
+        // Convert dates and filter for 2024, with error handling
+        data = rawData
+          .filter(d => d && d.tow_eligible_date) // Filter out any null/undefined entries
+          .map(d => ({
+            ...d,
+            tow_eligible_date: new Date(d.tow_eligible_date)
+          }))
+          .filter(d => !isNaN(d.tow_eligible_date.getTime())) // Filter out invalid dates
+          .filter(d => d.tow_eligible_date.getFullYear() === 2024)
+          .sort((a, b) => a.tow_eligible_date - b.tow_eligible_date);
+        
+        // Create visualization immediately
+        createVisualization();
+      })
+      .catch((error) => {
+        console.error("Error loading CSV:", error);
+      });
   });
 
   // Function to update visualization based on scroll section
