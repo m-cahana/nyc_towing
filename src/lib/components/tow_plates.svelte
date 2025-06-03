@@ -252,7 +252,7 @@
   async function loadPlateViolations(plate) {
     const violationsPath = `/data/fines_plate_${plate}.csv`;
     try {
-      const response = await fetch(violationsPath);
+      const response = await fetch(getFullPath(violationsPath));
       const csvText = await response.text();
       const violations = d3.csvParse(csvText, d => ({
         ...d,
@@ -604,6 +604,9 @@
         return Math.max(1, Math.floor(4 * (1 - distanceFromCenter)));
       };
 
+      // Predefined x-offsets for labels
+      const LABEL_OFFSETS = [-10, 10, -20, 35, -15, 25, -25, 15, -30, 20, -10, 40, -35, 10, -40];
+
       // Group violations into lines
       const lines = [];
       let currentLine = [];
@@ -676,13 +679,19 @@
           const y = startY + (lineIndex * lineHeight);
           const labelsPerLine = line.length;
           const lineWidth = zoomRadius * 2 * Math.sqrt(1 - Math.pow((y - centerY) / zoomRadius, 2));
-          const labelWidth = lineWidth / labelsPerLine;
-          const gap = labelWidth * 0.05;
-          const baseX = centerX - (lineWidth / 2) + (labelWidth * positionInLine) + (gap * positionInLine) + (labelWidth / 2);
-          // Add random offset between -40 and 40 pixels
-          const RANDOM_OFFSET_RANGE = 40;
-          const randomOffset = Math.random() * RANDOM_OFFSET_RANGE * 2 - RANDOM_OFFSET_RANGE;
-          return baseX + randomOffset;
+          
+          // Determine if this label is above or below the divider
+          const dividerLineIndex = lines.findIndex(line => line.includes(dividerIndex));
+          const isAboveDivider = lineIndex <= dividerLineIndex;
+          
+          // Calculate column width and position
+          const numColumns = isAboveDivider ? 2 : 3;
+          const columnWidth = lineWidth / numColumns;
+          const columnIndex = positionInLine % numColumns;
+          const baseX = centerX - (lineWidth / 2) + (columnWidth * columnIndex) + (columnWidth / 2);
+          
+          // Remove random offset for perfect alignment
+          return baseX;
         })
         .attr('y', (d, i) => {
           const lineIndex = lines.findIndex(line => line.includes(i));
