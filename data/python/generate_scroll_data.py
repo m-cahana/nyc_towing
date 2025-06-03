@@ -63,6 +63,36 @@ recent_tows_agg['plates_7day'] = recent_tows_agg['plates'].rolling(window=7).mea
 sns.lineplot(data=plates_to_tow_agg, x='tow_eligible_date', y='plates_7day', label='Plates Eligible for Tow')
 sns.lineplot(data=recent_tows_agg, x='first_action_date', y='plates_7day', label='Plates Actually Towed')
 
+
+# *********************
+# metric
+# *********************
+
+
+post_eligible_plates = plates_to_tow[plates_to_tow.violations_post_tow_eligible > plates_to_tow.violations / 2]
+
+print(f"""
+    share of plates with most violations post tow eligible date: 
+    
+      {
+        post_eligible_plates.shape[0] / plates_to_tow.shape[0]} or {post_eligible_plates.shape[0]} plates
+""")
+
+print(f"""
+      stats among these plates:
+
+     {
+        round(post_eligible_plates.violations.mean(), 2)
+      } violations on average
+
+
+      {
+        round(post_eligible_plates.violations_post_tow_eligible.mean(), 2)
+      } violations post tow eligible on average
+      """)
+
+
+
 # *********************
 # save
 # *********************

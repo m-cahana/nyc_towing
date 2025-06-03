@@ -11,7 +11,7 @@
         height = 500,
         CIRCLE_RADIUS = 5,
         CIRCLE_OPACITY = 0.8,
-        sharePlatesMajorityViolationsPostTowEligible = .25,
+        sharePlatesMajorityViolationsPostTowEligible = .15,
         margin = { top: 20, right: 20, bottom: 100, left: 60 },
     } = $props();
 
@@ -491,6 +491,8 @@
 
       // Add labels for the stacks
       svg.selectAll('.stack-label').remove();
+      svg.selectAll('.divider-label').remove();
+      svg.selectAll('.violation-divider').remove();
       
       svg.append('text')
         .attr('class', 'stack-label')
