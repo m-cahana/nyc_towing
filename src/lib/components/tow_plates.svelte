@@ -629,7 +629,18 @@
       if (dividerIndex > 0 && dividerIndex < totalViolations) {
         // Find which line contains the divider index
         const lineIndex = lines.findIndex(line => line.includes(dividerIndex));
-        const dividerY = startY + (lineIndex * lineHeight);
+        const dividerY = startY + (lineIndex * lineHeight) + 30; // Add 30px to move line down
+        
+        // Add the text label above the divider line
+        svg.append('text')
+          .attr('class', 'divider-label')
+          .attr('x', centerX - 40)
+          .attr('y', dividerY - 5)
+          .attr('text-anchor', 'middle')
+          .attr('opacity', 0)
+          .text(`${targetNode.plate} becomes tow eligible on ${d3.timeFormat("%B %d, %Y")(targetNode.tow_eligible_date)}`)
+          .transition()
+          .duration(500);
         
         svg.append('line')
           .attr('class', 'violation-divider')
@@ -651,7 +662,11 @@
         .data(sortedViolations)
         .enter()
         .append('text')
-        .attr('class', 'violation-label')
+        .attr('class', (d, i) => {
+          const lineIndex = lines.findIndex(line => line.includes(i));
+          const dividerLineIndex = lines.findIndex(line => line.includes(dividerIndex));
+          return `violation-label ${lineIndex > dividerLineIndex ? 'post-divider' : ''}`;
+        })
         .attr('x', (d, i) => {
           const lineIndex = lines.findIndex(line => line.includes(i));
           const line = lines[lineIndex];
@@ -661,11 +676,26 @@
           const lineWidth = zoomRadius * 2 * Math.sqrt(1 - Math.pow((y - centerY) / zoomRadius, 2));
           const labelWidth = lineWidth / labelsPerLine;
           const gap = labelWidth * 0.05;
-          return centerX - (lineWidth / 2) + (labelWidth * positionInLine) + (gap * positionInLine) + (labelWidth / 2);
+          const baseX = centerX - (lineWidth / 2) + (labelWidth * positionInLine) + (gap * positionInLine) + (labelWidth / 2);
+          // Add random offset between -40 and 40 pixels
+          const RANDOM_OFFSET_RANGE = 40;
+          const randomOffset = Math.random() * RANDOM_OFFSET_RANGE * 2 - RANDOM_OFFSET_RANGE;
+          return baseX + randomOffset;
         })
         .attr('y', (d, i) => {
           const lineIndex = lines.findIndex(line => line.includes(i));
-          return startY + (lineIndex * lineHeight);
+          const baseY = startY + (lineIndex * lineHeight);
+          
+          // Add extra spacing around the divider line
+          const DIVIDER_GAP = 60;
+          const dividerLineIndex = lines.findIndex(line => line.includes(dividerIndex));
+          
+          // Add gap to all lines after the divider
+          if (lineIndex > dividerLineIndex) {
+            return baseY + DIVIDER_GAP;
+          }
+          
+          return baseY;
         })
         .attr('text-anchor', 'middle')
         .attr('fill', 'white')
@@ -876,5 +906,20 @@
     font-family: Helvetica, Arial, sans-serif;
     font-weight: 400;
     font-size: 18px;
+  }
+
+  :global(.divider-label) {
+    font-style: italic;
+    font-size: 14px;
+    fill: #e1e1e1;
+    opacity: 1;
+  }
+
+  :global(.violation-label) {
+    fill: white;
+  }
+
+  :global(.violation-label.post-divider) {
+    fill: #c2c1c1;
   }
 </style>
