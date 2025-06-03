@@ -48,6 +48,10 @@
     {
       title: "",
       content: "Let's look at one specific vehicle in detail."
+    }, 
+    {
+      title: "",
+      content: "Let's look at one specific vehicle in detail."
     }
   ];
 
@@ -131,7 +135,7 @@
       .attr('text-anchor', 'middle')
       .attr('x', width / 2)
       .attr('y', innerHeight + margin.bottom - 10)
-      .text('Date in August 2024');
+      .text('Date');
 
     svg.append('g')
       .attr('class', 'y-axis axis')
@@ -186,10 +190,14 @@
         return y(d.n_plates);
       })
       .attr('r', CIRCLE_RADIUS)
+      .attr('fill', 'var(--primary-blue)')
       .attr('opacity', d => (d.tow_eligible_date.getMonth() === 7 && d.tow_eligible_date.getFullYear() === 2024) ? CIRCLE_OPACITY : 0)
       .attr('class', 'leaf-circle')
       .on('mouseover', function(event, d) {
-        d3.select(this).classed("leaf-circle-hover", true);
+        const isWorstOffender = d3.select(this).attr('fill') === 'var(--worst-offenders)';
+        d3.select(this)
+          .classed("leaf-circle-hover", !isWorstOffender)
+          .classed("worst-offenders-hover", isWorstOffender);
           // Create or update tooltip
           const tooltip = d3.select(container)
             .selectAll(".tooltip")
@@ -214,7 +222,9 @@
             .style("opacity", 1);
         })
         .on("mouseout", function() {
-          d3.select(this).classed("leaf-circle-hover", false);
+          d3.select(this)
+            .classed("leaf-circle-hover", false)
+            .classed("worst-offenders-hover", false);
           d3.select(container)
             .selectAll(".tooltip")
             .style("opacity", 0);
@@ -297,7 +307,8 @@
         .duration(500)
         .attr('cx', d => x(d.tow_eligible_date))
         .attr('cy', d => y(d.n_plates))
-        .attr('opacity', (d) => (d.tow_eligible_date.getMonth() === 7 && d.tow_eligible_date.getFullYear() === 2024) ? CIRCLE_OPACITY : 0);
+        .attr('opacity', (d) => (d.tow_eligible_date.getMonth() === 7 && d.tow_eligible_date.getFullYear() === 2024) ? CIRCLE_OPACITY : 0)
+        .attr('fill', 'var(--primary-blue)');
     }
       
     else if (currentSection === 1) {
@@ -371,10 +382,18 @@
         .duration(500)
         .attr('cx', d => x(d.tow_eligible_date))
         .attr('cy', d => y(d.n_plates))
-        .attr('opacity', CIRCLE_OPACITY);
+        .attr('opacity', CIRCLE_OPACITY)
+        .attr('fill', 'var(--primary-blue)');
     }
 
     if (currentSection === 2) {
+      nodes.transition()
+        .duration(500)
+        .attr('fill', d => d.violations_post_tow_eligible > d.violations/2 ? 'var(--worst-offenders)' : 'var(--primary-blue)')
+        .attr('opacity', CIRCLE_OPACITY);
+    }
+
+    if (currentSection === 3) {
 
       // Hide axes and labels
       svg.selectAll('.x-axis, .y-axis, .axis-label')
@@ -391,7 +410,9 @@
       const leftBinX = width / 4; // Center of left bin
       const rightBinX = 3 * width / 4; // Center of right bin
       const binY = height / 2; // Center of bins vertically
-      const maxRadius = Math.min(binWidth, binHeight) / 2; // Use smaller dimension to ensure spiral fits
+      // Use a constant gap of 2px between each node along the spiral
+      const gap = 10; // px between each node
+      const b = 6; // spiral tightness, adjust for visual preference
 
       nodes
         .transition()
@@ -402,16 +423,20 @@
             (n.violations_post_tow_eligible > (n.violations) / 2) === isRightSide
           ).data());
           const groupIndex = sameGroupNodes.indexOf(d);
-          
-          // Calculate spiral parameters
-          const rotations = 4; // Number of complete rotations
-          const angle = (groupIndex / sameGroupNodes.length) * rotations * 2 * Math.PI;
-          const radius = (groupIndex / sameGroupNodes.length) * maxRadius;
-          
-          // Calculate position in spiral
-          const spiralX = Math.cos(angle) * radius;
-          const spiralY = Math.sin(angle) * radius;
-          
+
+          // Constant-gap spiral calculation
+          let theta = 0;
+          let r = 0;
+          for (let i = 0; i < groupIndex; i++) {
+            // r = b * theta
+            // dr/dtheta = b
+            // ds = sqrt(r^2 + (dr/dtheta)^2) dtheta
+            // dtheta = gap / sqrt(r^2 + b^2)
+            const dtheta = gap / Math.sqrt(r * r + b * b);
+            theta += dtheta;
+            r = b * theta;
+          }
+          const spiralX = Math.cos(theta) * r;
           // Position in appropriate bin, mirror the right side
           return isRightSide ? rightBinX - spiralX : leftBinX + spiralX;
         })
@@ -421,16 +446,16 @@
             (n.violations_post_tow_eligible > (n.violations) / 2) === isRightSide
           ).data());
           const groupIndex = sameGroupNodes.indexOf(d);
-          
-          // Calculate spiral parameters
-          const rotations = 4; // Number of complete rotations
-          const angle = (groupIndex / sameGroupNodes.length) * rotations * 2 * Math.PI;
-          const radius = (groupIndex / sameGroupNodes.length) * maxRadius;
-          
-          // Calculate position in spiral
-          const spiralX = Math.cos(angle) * radius;
-          const spiralY = Math.sin(angle) * radius;
-          
+
+          // Constant-gap spiral calculation
+          let theta = 0;
+          let r = 0;
+          for (let i = 0; i < groupIndex; i++) {
+            const dtheta = gap / Math.sqrt(r * r + b * b);
+            theta += dtheta;
+            r = b * theta;
+          }
+          const spiralY = Math.sin(theta) * r;
           // Position in appropriate bin
           return binY + spiralY;
         })
@@ -443,7 +468,7 @@
       svg.append('text')
         .attr('class', 'stack-label')
         .attr('x', leftBinX)
-        .attr('y', binY - maxRadius - 60)
+        .attr('y', binY - 220)
         .attr('text-anchor', 'middle')
         .text('Plates who mostly violate')
         .attr('opacity', 0)
@@ -454,7 +479,7 @@
         svg.append('text')
         .attr('class', 'stack-label')
         .attr('x', rightBinX)
-        .attr('y', binY - maxRadius - 60)
+        .attr('y', binY - 220)
         .attr('text-anchor', 'middle')
         .text('Plates who mostly violate')
         .attr('opacity', 0)
@@ -465,7 +490,7 @@
       svg.append('text')
         .attr('class', 'stack-label')
         .attr('x', leftBinX)
-        .attr('y', binY - maxRadius - 40)
+        .attr('y', binY - 200)
         .attr('text-anchor', 'middle')
         .text(`before entering judgement (${(1 - sharePlatesMajorityViolationsPostTowEligible) * 100}%)`)
         .attr('opacity', 0)
@@ -476,7 +501,7 @@
       svg.append('text')
         .attr('class', 'stack-label')
         .attr('x', rightBinX)
-        .attr('y', binY - maxRadius - 40)
+        .attr('y', binY - 200)
         .attr('text-anchor', 'middle')
         .text(`after entering judgement (${sharePlatesMajorityViolationsPostTowEligible * 100}%)`)
         .attr('opacity', 0)
@@ -485,7 +510,7 @@
         .attr('opacity', 1);
     }
     
-    if (currentSection === 3) {
+    if (currentSection === 4) {
       // Hide axes and labels
       svg.selectAll('.x-axis, .y-axis, .axis-label')
         .transition()
@@ -526,7 +551,8 @@
           return (index % 2 === 0) ? 50 : height - 50;
         })
         .attr('r', d => d.plate === targetNode.plate ? zoomRadius : CIRCLE_RADIUS)
-        .attr('opacity', d => d.plate === targetNode.plate ? CIRCLE_OPACITY : 0);
+        .attr('opacity', d => d.plate === targetNode.plate ? CIRCLE_OPACITY : 0)
+        .attr('mouseover', null);
 
       // Add detailed label for the target node
       svg.selectAll('.node-label').remove();
@@ -699,7 +725,6 @@
 
   /* Circle styles */
   :global(.leaf-circle) {
-    fill: var(--primary-blue);
     stroke: none;
     stroke-width: 0;
   }
@@ -708,6 +733,10 @@
     fill: var(--dark-blue);
     stroke-width: 0.5px;
     stroke: black;
+  }
+
+  :global(.worst-offenders-hover) {
+    fill: var(--worst-offenders-hover);
   }
 
   :global(.axis-label) {
