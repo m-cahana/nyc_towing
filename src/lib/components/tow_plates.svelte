@@ -26,6 +26,7 @@
   let xAxis; // Make axis objects accessible
   let yAxis;
   let nodes;
+  let plateViolations = new Map(); // Store violations for each plate
 
   // Scrolly state
   let currentSection = $state(0);
@@ -155,6 +156,16 @@
 
     // select top plate for each date
     topPlates = dateEntries.map(([date, plates]) => {
+      // First, check for specific plates we want to ensure are selected
+      const specificPlates = ['LER5337']; // Add more plate numbers here
+      const specificPlate = plates.find(p => specificPlates.includes(p.plate));
+      if (specificPlate) {
+        return {
+          ...specificPlate,
+          n_plates: plates.length
+        };
+      }
+
       // First, find plates that meet our criteria
       const highPostViolationPlates = plates.filter(p => p.violations_post_tow_eligible > p.violations/2);
       
@@ -237,6 +248,22 @@
         });
       };
 
+  // Function to load plate violations
+  async function loadPlateViolations(plate) {
+    const violationsPath = `/data/fines_plate_${plate}.csv`;
+    try {
+      const response = await fetch(violationsPath);
+      const csvText = await response.text();
+      const violations = d3.csvParse(csvText, d => ({
+        ...d,
+        violation_date: new Date(d.issue_date)
+      }));
+      plateViolations.set(plate, violations);
+    } catch (error) {
+      console.error(`Error loading violations for plate ${plate}:`, error);
+    }
+  }
+
   onMount(async () => {
     // Load and process the data
     const fullDataPath = getFullPath(dataPath);
@@ -264,7 +291,7 @@
   });
 
   // Function to update visualization based on scroll section
-  function updateVisualization(currentSection) {
+  async function updateVisualization(currentSection) {
     if (!svg || !data || data.length === 0) return;
 
     // Add different effects based on the current section
@@ -402,7 +429,7 @@
         .attr('opacity', 0);
 
       svg.selectAll('.connect-line').remove(); // Remove existing line if any
-
+      svg.selectAll('.violation-label').remove(); // Remove any violation labels
 
       // Define spiral boundaries
       const binWidth = width / 3; // Width of each bin
@@ -519,11 +546,17 @@
 
       svg.selectAll('.stack-label').remove(); // Remove existing line if any
 
-      // Select a random plate
-      const randomIndex = Math.floor(Math.random() * topPlates.length);
-      const targetNode = topPlates[randomIndex];
-      console.log(`Selected random plate: ${targetNode.plate}`);
+      // Select the specific plate instead of a random one
+      const targetNode = topPlates.find(p => p.plate === 'LER5337');
+      console.log(`Selected plate: ${targetNode?.plate}`);
       if (!targetNode) return;
+
+      // Load violations for this plate if not already loaded
+      if (!plateViolations.has(targetNode.plate)) {
+        await loadPlateViolations(targetNode.plate);
+      }
+      const violations = plateViolations.get(targetNode.plate) || [];
+      const sortedViolations = violations.sort((a, b) => a.violation_date - b.violation_date);
 
       // Calculate zoom parameters
       const zoomRadius = Math.min(width, height) * 0.5; // 40% of the smaller screen dimension
@@ -553,6 +586,94 @@
         .attr('r', d => d.plate === targetNode.plate ? zoomRadius : CIRCLE_RADIUS)
         .attr('opacity', d => d.plate === targetNode.plate ? CIRCLE_OPACITY : 0)
         .attr('mouseover', null);
+
+      // Remove any existing violation labels
+      svg.selectAll('.violation-label').remove();
+      svg.selectAll('.violation-divider').remove();
+
+      // Add violation labels within the circle
+      const totalViolations = sortedViolations.length;
+      const lineHeight = 15;
+      const startY = centerY - (totalViolations * lineHeight) / 2 + 120;
+
+      // Calculate how many labels we can fit per line at different heights
+      const getLabelsPerLine = (y) => {
+        const distanceFromCenter = Math.abs(y - centerY) / zoomRadius;
+        return Math.max(1, Math.floor(4 * (1 - distanceFromCenter)));
+      };
+
+      // Group violations into lines
+      const lines = [];
+      let currentLine = [];
+      let currentY = startY;
+
+      for (let i = 0; i < totalViolations; i++) {
+        const labelsPerLine = getLabelsPerLine(currentY);
+        currentLine.push(i);
+        
+        if (currentLine.length === labelsPerLine) {
+          lines.push(currentLine);
+          currentLine = [];
+          currentY += lineHeight;
+        }
+      }
+      if (currentLine.length > 0) {
+        lines.push(currentLine);
+      }
+
+      // Find the index where violations cross the tow-eligible date
+      const towEligibleDate = targetNode.tow_eligible_date;
+      const dividerIndex = sortedViolations.findIndex(v => v.violation_date > towEligibleDate);
+
+      // Add the dividing line if we have both pre and post violations
+      if (dividerIndex > 0 && dividerIndex < totalViolations) {
+        // Find which line contains the divider index
+        const lineIndex = lines.findIndex(line => line.includes(dividerIndex));
+        const dividerY = startY + (lineIndex * lineHeight);
+        
+        svg.append('line')
+          .attr('class', 'violation-divider')
+          .attr('x1', centerX - zoomRadius)
+          .attr('x2', centerX + zoomRadius)
+          .attr('y1', dividerY)
+          .attr('y2', dividerY)
+          .attr('stroke', 'white')
+          .attr('stroke-width', 2)
+          .attr('stroke-dasharray', '5,5')
+          .attr('opacity', 0)
+          .transition()
+          .duration(500)
+          .attr('opacity', 0.5);
+      }
+
+      // Create violation labels
+      const violationLabels = svg.selectAll('.violation-label')
+        .data(sortedViolations)
+        .enter()
+        .append('text')
+        .attr('class', 'violation-label')
+        .attr('x', (d, i) => {
+          const lineIndex = lines.findIndex(line => line.includes(i));
+          const line = lines[lineIndex];
+          const positionInLine = line.indexOf(i);
+          const y = startY + (lineIndex * lineHeight);
+          const labelsPerLine = line.length;
+          const lineWidth = zoomRadius * 2 * Math.sqrt(1 - Math.pow((y - centerY) / zoomRadius, 2));
+          const labelWidth = lineWidth / labelsPerLine;
+          const gap = labelWidth * 0.05;
+          return centerX - (lineWidth / 2) + (labelWidth * positionInLine) + (gap * positionInLine) + (labelWidth / 2);
+        })
+        .attr('y', (d, i) => {
+          const lineIndex = lines.findIndex(line => line.includes(i));
+          return startY + (lineIndex * lineHeight);
+        })
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'white')
+        .attr('opacity', 0)
+        .text(d => d3.timeFormat("%b %d")(d.violation_date))
+        .transition()
+        .duration(500)
+        .attr('opacity', 1);
 
       // Add detailed label for the target node
       svg.selectAll('.node-label').remove();
