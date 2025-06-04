@@ -11,20 +11,18 @@
         height = 500,
         CIRCLE_RADIUS = 5,
         CIRCLE_OPACITY = 0.8,
+        selectedPlate = 'LER5337',
         sharePlatesMajorityViolationsPostTowEligible = .15,
         margin = { top: 20, right: 20, bottom: 100, left: 60 },
     } = $props();
 
   let topPlates;
   let svg;
-  const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
   let data = [];
   let container;
   let hasAnimated = false;
   let x; // Make x scale accessible to all functions
-  let xAxis; // Make axis objects accessible
-  let yAxis;
   let nodes;
   let plateViolations = new Map(); // Store violations for each plate
 
@@ -157,7 +155,7 @@
     // select top plate for each date
     topPlates = dateEntries.map(([date, plates]) => {
       // First, check for specific plates we want to ensure are selected
-      const specificPlates = ['LER5337']; // Add more plate numbers here
+      const specificPlates = [selectedPlate]; // Use the prop instead of hardcoded value
       const specificPlate = plates.find(p => specificPlates.includes(p.plate));
       if (specificPlate) {
         return {
@@ -421,7 +419,6 @@
     }
 
     if (currentSection === 3) {
-
       // Hide axes and labels
       svg.selectAll('.x-axis, .y-axis, .axis-label')
         .transition()
@@ -430,6 +427,9 @@
 
       svg.selectAll('.connect-line').remove(); // Remove existing line if any
       svg.selectAll('.violation-label').remove(); // Remove any violation labels
+
+      // Set SVG to allow overflow
+      svg.style('overflow', 'visible');
 
       // Define spiral boundaries
       const binWidth = width / 3; // Width of each bin
@@ -494,49 +494,26 @@
       svg.selectAll('.divider-label').remove();
       svg.selectAll('.violation-divider').remove();
       
-      svg.append('text')
-        .attr('class', 'stack-label')
-        .attr('x', leftBinX)
-        .attr('y', binY - 220)
-        .attr('text-anchor', 'middle')
-        .text('Plates who mostly violate')
-        .attr('opacity', 0)
-        .transition()
-        .duration(500)
-        .attr('opacity', 1);
+      // Helper function to create stack labels
+      function createStackLabel(x, y, text, yOffset = 0) {
+        return svg.append('text')
+          .attr('class', 'stack-label')
+          .attr('x', x)
+          .attr('y', y + yOffset)
+          .attr('text-anchor', 'middle')
+          .text(text)
+          .attr('opacity', 0)
+          .transition()
+          .duration(500)
+          .attr('opacity', 1);
+      }
 
-        svg.append('text')
-        .attr('class', 'stack-label')
-        .attr('x', rightBinX)
-        .attr('y', binY - 220)
-        .attr('text-anchor', 'middle')
-        .text('Plates who mostly violate')
-        .attr('opacity', 0)
-        .transition()
-        .duration(500)
-        .attr('opacity', 1);
+      // Create stack labels
+      createStackLabel(leftBinX, binY - 220, 'Plates who mostly violate');
+      createStackLabel(rightBinX, binY - 220, 'Plates who mostly violate');
+      createStackLabel(leftBinX, binY - 200, `before entering judgement (${(1 - sharePlatesMajorityViolationsPostTowEligible) * 100}%)`);
+      createStackLabel(rightBinX, binY - 200, `after entering judgement (${sharePlatesMajorityViolationsPostTowEligible * 100}%)`);
 
-      svg.append('text')
-        .attr('class', 'stack-label')
-        .attr('x', leftBinX)
-        .attr('y', binY - 200)
-        .attr('text-anchor', 'middle')
-        .text(`before entering judgement (${(1 - sharePlatesMajorityViolationsPostTowEligible) * 100}%)`)
-        .attr('opacity', 0)
-        .transition()
-        .duration(500)
-        .attr('opacity', 1);
-
-      svg.append('text')
-        .attr('class', 'stack-label')
-        .attr('x', rightBinX)
-        .attr('y', binY - 200)
-        .attr('text-anchor', 'middle')
-        .text(`after entering judgement (${sharePlatesMajorityViolationsPostTowEligible * 100}%)`)
-        .attr('opacity', 0)
-        .transition()
-        .duration(500)
-        .attr('opacity', 1);
     }
     
     if (currentSection === 4) {
@@ -548,8 +525,11 @@
 
       svg.selectAll('.stack-label').remove(); // Remove existing line if any
 
+      // Set SVG to allow overflow
+      svg.style('overflow', 'visible');
+
       // Select the specific plate instead of a random one
-      const targetNode = topPlates.find(p => p.plate === 'LER5337');
+      const targetNode = topPlates.find(p => p.plate === selectedPlate);
       console.log(`Selected plate: ${targetNode?.plate}`);
       if (!targetNode) return;
 
@@ -561,9 +541,9 @@
       const sortedViolations = violations.sort((a, b) => a.violation_date - b.violation_date);
 
       // Calculate zoom parameters
-      const zoomRadius = Math.min(width, height) * 0.5; // 40% of the smaller screen dimension
+      const zoomRadius = Math.min(width, height) * 0.67; // Use original height
       const centerX = width / 2;
-      const centerY = height / 2;
+      const centerY = height / 2; // Use original height
 
       // Update all nodes
       nodes
@@ -583,7 +563,7 @@
           }
           // Distribute other nodes vertically
           const index = topPlates.indexOf(d);
-          return (index % 2 === 0) ? 50 : height - 50;
+          return (index % 2 === 0) ? 50 : height - 50; // Use original height for positioning
         })
         .attr('r', d => d.plate === targetNode.plate ? zoomRadius : CIRCLE_RADIUS)
         .attr('opacity', d => d.plate === targetNode.plate ? CIRCLE_OPACITY : 0)
@@ -593,164 +573,94 @@
       svg.selectAll('.violation-label').remove();
       svg.selectAll('.violation-divider').remove();
 
-      // Add violation labels within the circle
-      const totalViolations = sortedViolations.length;
-      const lineHeight = 15;
-      const startY = centerY - (totalViolations * lineHeight) / 2 + 120;
-
-      // Calculate how many labels we can fit per line at different heights
-      const getLabelsPerLine = (y) => {
-        const distanceFromCenter = Math.abs(y - centerY) / zoomRadius;
-        return Math.max(1, Math.floor(4 * (1 - distanceFromCenter)));
-      };
-
-      // Predefined x-offsets for labels
-      const LABEL_OFFSETS = [-10, 10, -20, 35, -15, 25, -25, 15, -30, 20, -10, 40, -35, 10, -40];
-
-      // Group violations into lines
-      const lines = [];
-      let currentLine = [];
-      let currentY = startY;
-
-      for (let i = 0; i < totalViolations; i++) {
-        const labelsPerLine = getLabelsPerLine(currentY);
-        currentLine.push(i);
-        
-        if (currentLine.length === labelsPerLine) {
-          lines.push(currentLine);
-          currentLine = [];
-          currentY += lineHeight;
-        }
-      }
-      if (currentLine.length > 0) {
-        lines.push(currentLine);
-      }
+      // Calculate separate starting positions for pre and post labels
+      const preLabelStartX = centerX - 250; 
+      const postLabelStartX = centerX - 250 ; // Can be different for post labels
+      const lineHeight = 20; // Slightly increased for better readability
+      const LABELS_PER_LINE = 4;
+      const LABEL_SPACING = 70; // pixels between labels on same line
 
       // Find the index where violations cross the tow-eligible date
       const towEligibleDate = targetNode.tow_eligible_date;
       const dividerIndex = sortedViolations.findIndex(v => v.violation_date > towEligibleDate);
 
-      // Add the dividing line if we have both pre and post violations
-      if (dividerIndex > 0 && dividerIndex < totalViolations) {
-        // Find which line contains the divider index
-        const lineIndex = lines.findIndex(line => line.includes(dividerIndex));
-        const dividerY = startY + (lineIndex * lineHeight) + 30; // Add 30px to move line down
-        
-        // Add the text label above the divider line
-        svg.append('text')
-          .attr('class', 'divider-label')
-          .attr('x', centerX - 40)
-          .attr('y', dividerY - 5)
-          .attr('text-anchor', 'middle')
+      // Split violations into pre and post tow-eligible
+      const preViolations = sortedViolations.slice(0, dividerIndex);
+      const postViolations = sortedViolations.slice(dividerIndex);
+
+      // Calculate vertical spacing for each half
+      const preLines = Math.ceil(preViolations.length / LABELS_PER_LINE);
+      const postLines = Math.ceil(postViolations.length / LABELS_PER_LINE);
+      const preStartY = centerY - zoomRadius * 0.5; // Start 40% up from center
+      const postStartY = centerY + zoomRadius * 0.2; // Start 40% down from center
+
+      // Helper function to create violation labels
+      function createViolationLabels(violations, startX, startY, startIndex, delayOffset = 0) {
+        return svg.selectAll(`.violation-label-${startIndex === 0 ? 'pre' : 'post'}`)
+          .data(violations)
+          .enter()
+          .append('text')
+          .attr('class', `violation-label ${startIndex === 0 ? '' : 'post-divider'}`)
+          .attr('x', (d, i) => {
+            const lineIndex = Math.floor(i / LABELS_PER_LINE);
+            const positionInLine = i % LABELS_PER_LINE;
+            return startX + (positionInLine * (60 + LABEL_SPACING));
+          })
+          .attr('y', (d, i) => {
+            const lineIndex = Math.floor(i / LABELS_PER_LINE);
+            return startY + (lineIndex * lineHeight);
+          })
+          .attr('text-anchor', 'start')
           .attr('opacity', 0)
-          .text(`${targetNode.plate} becomes tow eligible on ${d3.timeFormat("%B %d, %Y")(targetNode.tow_eligible_date)}`)
+          .each(function(d, i) {
+            const text = d3.select(this);
+            text.append('tspan')
+              .attr('fill', 'var(--worst-offenders-contrast)')
+              .text(`${startIndex + i + 1} - `);
+            text.append('tspan')
+              .attr('fill', '#ffffff')
+              .text(d3.timeFormat("%b %d %Y")(d.violation_date));
+          })
           .transition()
-          .duration(500);
-        
-        svg.append('line')
-          .attr('class', 'violation-divider')
-          .attr('x1', centerX - zoomRadius)
-          .attr('x2', centerX + zoomRadius)
-          .attr('y1', dividerY)
-          .attr('y2', dividerY)
-          .attr('stroke', 'white')
-          .attr('stroke-width', 2)
-          .attr('stroke-dasharray', '5,5')
-          .attr('opacity', 0)
-          .transition()
+          .delay((d, i) => delayOffset + (i * 100))
           .duration(500)
-          .attr('opacity', 0.5);
+          .attr('opacity', 1);
       }
 
-      // Create violation labels
-      const violationLabels = svg.selectAll('.violation-label')
-        .data(sortedViolations)
-        .enter()
-        .append('text')
-        .attr('class', (d, i) => {
-          const lineIndex = lines.findIndex(line => line.includes(i));
-          const dividerLineIndex = lines.findIndex(line => line.includes(dividerIndex));
-          return `violation-label ${lineIndex > dividerLineIndex ? 'post-divider' : ''}`;
-        })
-        .attr('x', (d, i) => {
-          const lineIndex = lines.findIndex(line => line.includes(i));
-          const line = lines[lineIndex];
-          const positionInLine = line.indexOf(i);
-          const y = startY + (lineIndex * lineHeight);
-          const labelsPerLine = line.length;
-          const lineWidth = zoomRadius * 2 * Math.sqrt(1 - Math.pow((y - centerY) / zoomRadius, 2));
-          
-          // Determine if this label is above or below the divider
-          const dividerLineIndex = lines.findIndex(line => line.includes(dividerIndex));
-          const isAboveDivider = lineIndex <= dividerLineIndex;
-          
-          // Calculate column width and position
-          const numColumns = isAboveDivider ? 2 : 3;
-          const columnWidth = lineWidth / numColumns;
-          const columnIndex = positionInLine % numColumns;
-          const baseX = centerX - (lineWidth / 2) + (columnWidth * columnIndex) + (columnWidth / 2);
-          
-          // Remove random offset for perfect alignment
-          return baseX;
-        })
-        .attr('y', (d, i) => {
-          const lineIndex = lines.findIndex(line => line.includes(i));
-          const baseY = startY + (lineIndex * lineHeight);
-          
-          // Add extra spacing around the divider line
-          const DIVIDER_GAP = 60;
-          const dividerLineIndex = lines.findIndex(line => line.includes(dividerIndex));
-          
-          // Add gap to all lines after the divider
-          if (lineIndex > dividerLineIndex) {
-            return baseY + DIVIDER_GAP;
-          }
-          
-          return baseY;
-        })
-        .attr('text-anchor', 'middle')
-        .attr('fill', 'white')
+      // Add the dividing line
+      svg.append('line')
+        .attr('class', 'violation-divider')
+        .attr('x1', centerX - zoomRadius)
+        .attr('x2', centerX + zoomRadius)
+        .attr('y1', centerY)
+        .attr('y2', centerY)
+        .attr('stroke', 'white')
+        .attr('stroke-width', 2)
+        .attr('stroke-dasharray', '5,5')
         .attr('opacity', 0)
-        .text(d => d3.timeFormat("%b %d")(d.violation_date))
         .transition()
+        .delay(preViolations.length * 100) // Wait for all pre-violations to appear
         .duration(500)
-        .attr('opacity', 1);
+        .attr('opacity', 1)
+        .on('end', () => {
+          // Add the text label for the divider after the line appears
+          svg.append('text')
+            .attr('class', 'divider-label')
+            .attr('x', centerX)
+            .attr('y', centerY - 10)
+            .attr('text-anchor', 'middle')
+            .attr('opacity', 0)
+            .text(`${targetNode.plate} becomes tow eligible on ${d3.timeFormat("%B %d, %Y")(targetNode.tow_eligible_date)}`)
+            .transition()
+            .duration(500)
+            .attr('opacity', 1);
+        });
 
-      // Add detailed label for the target node
-      svg.selectAll('.node-label').remove();
-      svg.append('text')
-        .attr('class', 'node-label')
-        .attr('x', centerX)
-        .attr('y', centerY - zoomRadius - 20)
-        .attr('text-anchor', 'middle')
-        .text(`Plate: ${targetNode.plate}`)
-        .attr('opacity', 0)
-        .transition()
-        .duration(500)
-        .attr('opacity', 1);
-
-      svg.append('text')
-        .attr('class', 'node-label')
-        .attr('x', centerX)
-        .attr('y', centerY - zoomRadius - 40)
-        .attr('text-anchor', 'middle')
-        .text(`Total Violations: ${targetNode.violations}`)
-        .attr('opacity', 0)
-        .transition()
-        .duration(500)
-        .attr('opacity', 1);
-
-      svg.append('text')
-        .attr('class', 'node-label')
-        .attr('x', centerX)
-        .attr('y', centerY - zoomRadius - 60)
-        .attr('text-anchor', 'middle')
-        .text(`Post-Tow Violations: ${targetNode.violations_post_tow_eligible}`)
-        .attr('opacity', 0)
-        .transition()
-        .duration(500)
-        .attr('opacity', 1);
+      // Create violation labels for pre and post tow-eligible violations
+      createViolationLabels(preViolations, preLabelStartX, preStartY, 0);
+      createViolationLabels(postViolations, postLabelStartX, postStartY, preViolations.length, preViolations.length * 100 + 1000);
     }
+  
   }
 
   // Effect to update visualization when section changes
@@ -922,15 +832,15 @@
   :global(.divider-label) {
     font-style: italic;
     font-size: 14px;
-    fill: #e1e1e1;
+    fill: #ffffff;
     opacity: 1;
   }
 
   :global(.violation-label) {
-    fill: white;
+    fill: #ffffff;
   }
 
   :global(.violation-label.post-divider) {
-    fill: #c2c1c1;
+    fill: #ffffff;
   }
 </style>
