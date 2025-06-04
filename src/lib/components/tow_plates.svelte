@@ -427,6 +427,7 @@
 
       svg.selectAll('.connect-line').remove(); // Remove existing line if any
       svg.selectAll('.violation-label').remove(); // Remove any violation labels
+      svg.selectAll('.percentage-label').remove(); // Remove percentage labels
 
       // Set SVG to allow overflow
       svg.style('overflow', 'visible');
@@ -487,7 +488,9 @@
           return binY + spiralY;
         })
         .attr('r', CIRCLE_RADIUS)
-        .attr('opacity', CIRCLE_OPACITY);
+        .attr('opacity', CIRCLE_OPACITY)
+        .attr('class', 'leaf-circle')
+        .style('cursor', 'pointer');
 
       // Add labels for the stacks
       svg.selectAll('.stack-label').remove();
@@ -567,15 +570,16 @@
         })
         .attr('r', d => d.plate === targetNode.plate ? zoomRadius : CIRCLE_RADIUS)
         .attr('opacity', d => d.plate === targetNode.plate ? CIRCLE_OPACITY : 0)
-        .attr('mouseover', null);
+        .attr('class', 'leaf-circle non-interactive')
+        .style('cursor', 'default');
 
       // Remove any existing violation labels
       svg.selectAll('.violation-label').remove();
       svg.selectAll('.violation-divider').remove();
 
       // Calculate separate starting positions for pre and post labels
-      const preLabelStartX = centerX - 250; 
-      const postLabelStartX = centerX - 250 ; // Can be different for post labels
+      const startX = centerX - 250; 
+     
       const lineHeight = 20; // Slightly increased for better readability
       const LABELS_PER_LINE = 4;
       const LABEL_SPACING = 70; // pixels between labels on same line
@@ -588,11 +592,71 @@
       const preViolations = sortedViolations.slice(0, dividerIndex);
       const postViolations = sortedViolations.slice(dividerIndex);
 
+      // Calculate percentages
+      const totalViolations = sortedViolations.length;
+      const prePercentage = ((preViolations.length / totalViolations) * 100).toFixed(0);
+      const postPercentage = ((postViolations.length / totalViolations) * 100).toFixed(0);
+
       // Calculate vertical spacing for each half
       const preLines = Math.ceil(preViolations.length / LABELS_PER_LINE);
       const postLines = Math.ceil(postViolations.length / LABELS_PER_LINE);
-      const preStartY = centerY - zoomRadius * 0.5; // Start 40% up from center
-      const postStartY = centerY + zoomRadius * 0.2; // Start 40% down from center
+      const preStartY = centerY - zoomRadius * 0.5; 
+      const postStartY = centerY + zoomRadius * 0.2; 
+      const labelYOffset = 30;
+
+      // Add percentage labels
+      svg.append('text')
+        .attr('class', 'percentage-label')
+        .attr('x', centerX)
+        .attr('y', preStartY - labelYOffset)
+        .attr('text-anchor', 'middle')
+        .attr('opacity', 0)
+        .each(function() {
+          const text = d3.select(this);
+          text.append('tspan')
+            .attr('fill', 'var(--worst-offenders-hover)')
+            .text(`${prePercentage}%`);
+          text.append('tspan')
+            .attr('fill', '#ffffff')
+            .text(' of violations ');
+          text.append('tspan')
+            .attr('fill', '#ffffff')
+            .style('text-decoration', 'underline')
+            .text('before');
+          text.append('tspan')
+            .attr('fill', '#ffffff')
+            .text(' becoming tow eligible');
+        })
+        .transition()
+        .duration(500)
+        .attr('opacity', 1);
+
+      svg.append('text')
+        .attr('class', 'percentage-label')
+        .attr('x', centerX)
+        .attr('y', postStartY + ((postLines - 1) * lineHeight) + labelYOffset)
+        .attr('text-anchor', 'middle')
+        .attr('opacity', 0)
+        .each(function() {
+          const text = d3.select(this);
+          text.append('tspan')
+            .attr('fill', 'var(--worst-offenders-hover)')
+            .text(`${postPercentage}%`);
+          text.append('tspan')
+            .attr('fill', '#ffffff')
+            .text(' of violations ');
+          text.append('tspan')
+            .attr('fill', '#ffffff')
+            .style('text-decoration', 'underline')
+            .text('after');
+          text.append('tspan')
+            .attr('fill', '#ffffff')
+            .text(' becoming tow eligible');
+        })
+        .transition()
+        .delay(preViolations.length * 100 + postViolations.length * 100 + 1000)
+        .duration(500)
+        .attr('opacity', 1);
 
       // Helper function to create violation labels
       function createViolationLabels(violations, startX, startY, startIndex, delayOffset = 0) {
@@ -615,7 +679,7 @@
           .each(function(d, i) {
             const text = d3.select(this);
             text.append('tspan')
-              .attr('fill', 'var(--worst-offenders-contrast)')
+              .attr('fill', 'var(--worst-offenders-hover)')
               .text(`${startIndex + i + 1} - `);
             text.append('tspan')
               .attr('fill', '#ffffff')
@@ -634,7 +698,7 @@
         .attr('x2', centerX + zoomRadius)
         .attr('y1', centerY)
         .attr('y2', centerY)
-        .attr('stroke', 'white')
+        .attr('stroke', 'var(--worst-offenders-hover)')
         .attr('stroke-width', 2)
         .attr('stroke-dasharray', '5,5')
         .attr('opacity', 0)
@@ -657,8 +721,8 @@
         });
 
       // Create violation labels for pre and post tow-eligible violations
-      createViolationLabels(preViolations, preLabelStartX, preStartY, 0);
-      createViolationLabels(postViolations, postLabelStartX, postStartY, preViolations.length, preViolations.length * 100 + 1000);
+      createViolationLabels(preViolations, startX, preStartY, 0);
+      createViolationLabels(postViolations, startX, postStartY, preViolations.length, preViolations.length * 100 + 1000);
     }
   
   }
@@ -841,6 +905,15 @@
   }
 
   :global(.violation-label.post-divider) {
+    fill: #ffffff;
+  }
+
+  :global(.non-interactive) {
+    pointer-events: none;
+  }
+
+  :global(.percentage-label) {
+    font-size: 16px;
     fill: #ffffff;
   }
 </style>
