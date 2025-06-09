@@ -78,22 +78,14 @@
       .range([height - margin.bottom, margin.top]);
     
     // Calculate appropriate number of ticks
-    const xTickCount = Math.min(10, dateExtent[1].getDate() - dateExtent[0].getDate() + 1);
     const yTickCount = Math.min(10, Math.ceil(roundedMax / 5));
     
-    // Update axes with transitions
     svg.select('.x-axis')
       .transition()
       .duration(500)
       .call(d3.axisBottom(x)
-        .ticks(xTickCount)
-        .tickFormat(d3.timeFormat(dateFormat)))
-      .each(function() {
-        const ticks = d3.select(this).selectAll('.tick');
-        console.log('X-axis ticks:', ticks.data());
-        console.log('X-axis tick count:', ticks.size());
-        console.log('X-axis domain:', x.domain());
-      });
+        .ticks(10)
+        .tickFormat(d3.timeFormat(dateFormat)));
     
     svg.select('.y-axis')
       .transition()
@@ -316,7 +308,7 @@
       
     else if (currentSection === 1) {
       // Reset to full view
-      const { x: xScale, y: yScale } = regenerateAxes(data);
+      const { x: xScale, y: yScale } = regenerateAxes(data, "%b %Y");
       if (!yScale) return;
       
       // Show axes and labels again
@@ -394,6 +386,9 @@
         .duration(500)
         .attr('fill', d => d.violations_post_tow_eligible > 0 ? 'var(--worst-offenders)' : 'var(--primary-blue)')
         .attr('opacity', CIRCLE_OPACITY);
+
+      svg.selectAll('.grid-divider').remove();
+      svg.selectAll('.grid-divider-label').remove();
     }
 
     if (currentSection === 3) {
@@ -413,10 +408,10 @@
     const outerRowLength = 17;
     const middleRowLength = 20;
     const rowLengths = [
-  ...Array(9).fill(17),           // top
-  ...Array(3).fill(20),        
-  ...Array(9).fill(17)            // bottom
-];
+      ...Array(9).fill(17),           
+      ...Array(3).fill(20),        
+      ...Array(9).fill(17)            
+    ];
     // Precompute start indices for each row
     const rowStartIndices = rowLengths.reduce((acc, len, i) => {
       const prev = acc[i - 1] || 0;
@@ -502,24 +497,6 @@
       .attr('class', 'leaf-circle')
       .style('cursor', 'pointer');
 
-    // Add explanatory labels
-    function createStackLabel(x, y, text, yOffset = 0) {
-      return svg.append('text')
-        .attr('class', 'stack-label')
-        .attr('x', x)
-        .attr('y', y + yOffset)
-        .attr('text-anchor', 'middle')
-        .text(text)
-        .attr('opacity', 0)
-        .transition()
-        .duration(500)
-        .attr('opacity', 1);
-    }
-
-    createStackLabel(width / 2, startY - 40, "Plates who stop speeding");
-    createStackLabel(width / 2, startY - 20, `after entering judgement (${(1 - sharePlatesMajorityViolationsPostTowEligible) * 100}%)`);
-    createStackLabel(width / 2, startY + gridHeight + 20, 'Plates who continue speeding');
-    createStackLabel(width / 2, startY + gridHeight + 40, `after entering judgement (${sharePlatesMajorityViolationsPostTowEligible * 100}%)`);
   }
     if (currentSection === 4) {
       // Remove clip path for section 4 to allow overflow
@@ -532,6 +509,8 @@
         .attr('opacity', 0);
 
       svg.selectAll('.stack-label').remove(); // Remove existing line if any
+      svg.selectAll('.grid-divider').remove();
+      svg.selectAll('.grid-divider-label').remove();
 
       // Set SVG to allow overflow
       svg.style('overflow', 'visible');
@@ -557,19 +536,6 @@
       const specificPlatesData = [selectedPlate, ...sidePlates]
         .map(plate => topPlates.find(p => p.plate === plate))
         .filter(Boolean); // Remove any undefined entries
-
-      // Log plate information and stack positions
-      console.log('Specific Plates Data:');
-      specificPlatesData.forEach((plate, index) => {
-        const yOffset = (index - 3.5) * 40;
-        console.log(`Plate: ${plate.plate}`);
-        console.log(`  Index: ${index}`);
-        console.log(`  Stack Position: ${centerY + yOffset}`);
-        console.log(`  Violations: ${plate.violations}`);
-        console.log(`  Post-tow Violations: ${plate.violations_post_tow_eligible}`);
-        console.log(`  Tow Eligible Date: ${plate.tow_eligible_date}`);
-        console.log('---');
-      });
 
       // Add specific plates to topPlates if they don't exist
       specificPlatesData.forEach(plate => {
@@ -786,19 +752,9 @@
                   .text(`${startIndex + i + 1} - `);
                 text.append('tspan')
                   .attr('fill', '#ffffff')
+                  .style('text-decoration', d.is_paid ? 'line-through' : 'none')
                   .text(d3.timeFormat("%b %d %Y")(d.violation_date));
               });
-
-            // Add paid icon for paid violations
-            if (d.is_paid) {
-              group.append('image')
-                .attr('href', '/paid.png')
-                .attr('width', 60)
-                .attr('height', 30)
-                .attr('x', -20) // Position the icon to the right of the date
-                .attr('y', -20) // Adjust vertical position to align with text
-                .attr('filter', 'brightness(0) invert(1)'); // Make the image white
-            }
           })
           .transition()
           .delay((d, i) => delayOffset + (i * 100))
