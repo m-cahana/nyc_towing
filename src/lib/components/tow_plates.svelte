@@ -393,7 +393,6 @@
 
     if (currentSection === 3) {
 
-    console.log(`nodes: ${nodes.size()}`);
     // Hide axes and labels
     svg.selectAll('.x-axis, .y-axis, .axis-label')
       .transition()
@@ -401,7 +400,7 @@
       .attr('opacity', 0);
 
     svg.selectAll('.connect-line').remove();
-    svg.selectAll('.violation-label, .percentage-label, .stack-label, .divider-label, .violation-divider').remove();
+    svg.selectAll('.violation-label,.stack-label, .divider-label, .violation-divider, .title-label').remove();
     svg.style('overflow', 'visible');
 
     const NODE_SPACING = 20;
@@ -629,11 +628,11 @@
           }
           
           // Clear all labels and lines
-          svg.selectAll('.percentage-label').remove();
           svg.selectAll('.violation-label').remove();
           svg.selectAll('.violation-divider').remove();
           svg.selectAll('.divider-label').remove();
           svg.selectAll('.connect-line').remove();
+          svg.selectAll('.title-label').remove();
           
           // Trigger the visualization update
           updateVisualization(4);
@@ -654,25 +653,23 @@
       const towEligibleDate = targetNode.tow_eligible_date;
       const dividerIndex = sortedViolations.findIndex(v => v.violation_date > towEligibleDate);
 
-      // Split violations into pre and post tow-eligible
-      const preViolations = sortedViolations.slice(0, dividerIndex);
-      const postViolations = sortedViolations.slice(dividerIndex);
+      // Split violations into pre and post tow-eligible, filtering out paid violations
+      const preViolations = sortedViolations.slice(0, dividerIndex).filter(v => !v.is_paid);
+      const postViolations = sortedViolations.slice(dividerIndex).filter(v => !v.is_paid);
 
-      // Calculate percentages
-      const totalViolations = sortedViolations.length;
-      const prePercentage = ((preViolations.length / totalViolations) * 100).toFixed(0);
-      const postPercentage = ((postViolations.length / totalViolations) * 100).toFixed(0);
+      // Calculate percentage of violations after judgment
+      const totalUnpaidViolations = preViolations.length + postViolations.length;
+      const postPercentage = totalUnpaidViolations > 0 ? ((postViolations.length / totalUnpaidViolations) * 100).toFixed(0) : 0;
 
       // Calculate vertical spacing for each half
-      const preLines = Math.ceil(preViolations.length / LABELS_PER_LINE);
-      const postLines = Math.ceil(postViolations.length / LABELS_PER_LINE);
+     
       const preStartY = centerY - zoomRadius * 0.5; 
       const postStartY = centerY + zoomRadius * 0.2; 
-      const labelYOffset = 30;
+      const labelYOffset = 60;
 
-      // Add percentage labels
+      // Add title label
       svg.append('text')
-        .attr('class', 'percentage-label')
+        .attr('class', 'title-label')
         .attr('x', centerX)
         .attr('y', preStartY - labelYOffset)
         .attr('text-anchor', 'middle')
@@ -680,47 +677,13 @@
         .each(function() {
           const text = d3.select(this);
           text.append('tspan')
-            .attr('fill', 'var(--worst-offenders-hover)')
-            .text(`${prePercentage}%`);
+            .text(`${targetNode.plate}'s unpaid tickets`);
           text.append('tspan')
-            .attr('fill', '#ffffff')
-            .text(' of violations ');
-          text.append('tspan')
-            .attr('fill', '#ffffff')
-            .style('text-decoration', 'underline')
-            .text('before');
-          text.append('tspan')
-            .attr('fill', '#ffffff')
-            .text(' becoming tow eligible');
+            .attr('dy', '1.2em')
+            .attr('x', centerX)
+            .text(`(${postPercentage}% occur after entering judgment)`);
         })
         .transition()
-        .duration(500)
-        .attr('opacity', 1);
-
-      svg.append('text')
-        .attr('class', 'percentage-label')
-        .attr('x', centerX)
-        .attr('y', postStartY + ((postLines - 1) * lineHeight) + labelYOffset)
-        .attr('text-anchor', 'middle')
-        .attr('opacity', 0)
-        .each(function() {
-          const text = d3.select(this);
-          text.append('tspan')
-            .attr('fill', 'var(--worst-offenders-hover)')
-            .text(`${postPercentage}%`);
-          text.append('tspan')
-            .attr('fill', '#ffffff')
-            .text(' of violations ');
-          text.append('tspan')
-            .attr('fill', '#ffffff')
-            .style('text-decoration', 'underline')
-            .text('after');
-          text.append('tspan')
-            .attr('fill', '#ffffff')
-            .text(' becoming tow eligible');
-        })
-        .transition()
-        .delay(preViolations.length * 100 + postViolations.length * 100 + 1000)
         .duration(500)
         .attr('opacity', 1);
 
@@ -781,11 +744,15 @@
           // Add the text label for the divider after the line appears
           svg.append('text')
             .attr('class', 'divider-label')
-            .attr('x', centerX)
+            .attr('x', startX + 20)
             .attr('y', centerY - 10)
-            .attr('text-anchor', 'middle')
+            .attr('text-anchor', 'left')
             .attr('opacity', 0)
-            .text(`${targetNode.plate} becomes tow eligible on ${d3.timeFormat("%B %d, %Y")(targetNode.tow_eligible_date)}`)
+            .text(() => {
+              console.log('Raw tow_eligible_date:', targetNode.tow_eligible_date);
+              console.log('Formatted date:', d3.timeFormat("%B %d, %Y")(targetNode.tow_eligible_date));
+              return `${targetNode.plate} becomes tow eligible on ${d3.timeFormat("%B %d, %Y")(targetNode.tow_eligible_date)}`;
+            })
             .transition()
             .duration(500)
             .attr('opacity', 1);
@@ -983,8 +950,14 @@
     pointer-events: none;
   }
 
-  :global(.percentage-label) {
+  :global(.title-label) {
     font-size: 16px;
+    font-style: italic;
+    font-weight: 600;
+  }
+
+  :global(.title-label tspan) {
     fill: #ffffff;
   }
+
 </style>

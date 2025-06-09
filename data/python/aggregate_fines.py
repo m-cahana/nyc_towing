@@ -97,9 +97,10 @@ def get_threshold_crossing_dates(fines, threshold=350):
     
     # now that the tow_eligible_date is really the issue date, we need to add 75 days to it
     crossing['tow_eligible_date'] = crossing['issue_date'] + pd.Timedelta(days=judgement_date_diff_min)
+    crossing.rename(columns={'issue_date': 'crossing_date'}, inplace=True)
 
     # Select relevant columns
-    crossing = crossing[['plate', 'state', 'license_type', 'tow_eligible_date', 'cumulative_due']]
+    crossing = crossing[['plate', 'state', 'license_type', 'tow_eligible_date', 'crossing_date', 'cumulative_due']]
 
     return crossing
 
@@ -121,7 +122,7 @@ for year in range(2015, 2026):
 
 crossing_dates = get_threshold_crossing_dates(fines)
 
-fines = fines.merge(crossing_dates[['plate', 'state', 'license_type', 'tow_eligible_date']], on=['plate', 'state', 'license_type'], how='left')
+fines = fines.merge(crossing_dates[['plate', 'state', 'license_type', 'tow_eligible_date', 'crossing_date', 'cumulative_due']], on=['plate', 'state', 'license_type'], how='left')
 
 # *********************
 # aggregate
