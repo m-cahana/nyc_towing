@@ -3,6 +3,7 @@ import datetime as dt
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import random
 
 # *********************
 # data read in 
@@ -30,11 +31,11 @@ tow_cases['first_action_date'] = tow_cases[['boot_date', 'tow_date']].min(axis=1
 # plates that require towing
 plates_to_tow = fine_agg[fine_agg.tow_eligible_date.notna()]
 
-plates_to_tow = plates_to_tow[plates_to_tow.tow_eligible_date >= '2024-01-01']
+plates_to_tow = plates_to_tow[plates_to_tow.tow_eligible_date.dt.year == 2024]
 
 recent_tows = fine_agg.merge(tow_cases, left_on=['plate', 'state', 'license_type'], right_on=['plate_id', 'license_plate_issuing_state', 'license_plate_type'], how='inner')
 
-recent_tows = recent_tows[recent_tows.first_action_date >= '2024-01-01']
+recent_tows = recent_tows[recent_tows.first_action_date.dt.year == 2024]
 
 
 # *********************
@@ -69,10 +70,10 @@ sns.lineplot(data=recent_tows_agg, x='first_action_date', y='plates_7day', label
 # *********************
 
 
-post_eligible_plates = plates_to_tow[plates_to_tow.violations_post_tow_eligible > plates_to_tow.violations / 2]
+post_eligible_plates = plates_to_tow[plates_to_tow.violations_post_tow_eligible > 0]
 
 print(f"""
-    share of plates with most violations post tow eligible date: 
+    share of plates with violations post tow eligible date: 
     
       {
         post_eligible_plates.shape[0] / plates_to_tow.shape[0]} or {post_eligible_plates.shape[0]} plates
@@ -91,6 +92,28 @@ print(f"""
       } violations post tow eligible on average
       """)
 
+violation_post_tow_eligible_share = post_eligible_plates.shape[0] / plates_to_tow.shape[0]
+
+# *********************
+# sample
+# *********************
+
+fine_agg_daily_sample = pd.DataFrame()
+
+for date in plates_to_tow.tow_eligible_date.unique():
+    plates_to_tow_date = plates_to_tow[plates_to_tow.tow_eligible_date == date]
+
+    n_plates = plates_to_tow_date.shape[0]
+    if (random.random() < violation_post_tow_eligible_share):
+        sample_plate = plates_to_tow_date[plates_to_tow_date.violations_post_tow_eligible > 0].sample(1)
+
+        sample_plate['n_plates'] = n_plates
+
+        fine_agg_daily_sample = pd.concat([fine_agg_daily_sample, sample_plate])
+    else:
+        sample_plate = plates_to_tow_date[plates_to_tow_date.violations_post_tow_eligible == 0].sample(1)
+        sample_plate['n_plates'] = n_plates
+        fine_agg_daily_sample = pd.concat([fine_agg_daily_sample, sample_plate])
 
 
 # *********************
@@ -98,6 +121,8 @@ print(f"""
 # *********************
 
 plates_to_tow.to_csv('../../static/data/plates_to_tow.csv', index=False)
+
+fine_agg_daily_sample.to_csv('../../static/data/plates_to_tow_daily_sample.csv', index=False)
 
 
 

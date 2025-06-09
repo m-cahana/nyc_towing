@@ -6,13 +6,14 @@
 
   // Props for the component
   let {
-        dataPath = '/data/plates_to_tow.csv',
+        dataPath = '/data/plates_to_tow_daily_sample.csv',
         width = 800,
         height = 500,
         CIRCLE_RADIUS = 5,
         CIRCLE_OPACITY = 0.8,
-        selectedPlate = 'LER5337',
-        sharePlatesMajorityViolationsPostTowEligible = .15,
+        selectedPlate = 'KJC7042',
+        sidePlates = ['LLD1506', 'MBE1363', 'LEX6751', 'LCJ3416', 'RDE3018', 'KV476H', 'JUA957', 'LNC2362', 'KJC7042'],
+        sharePlatesMajorityViolationsPostTowEligible = .53,
         margin = { top: 20, right: 20, bottom: 100, left: 60 },
     } = $props();
 
@@ -25,6 +26,7 @@
   let x; // Make x scale accessible to all functions
   let nodes;
   let plateViolations = new Map(); // Store violations for each plate
+  let mainGroup; // Add mainGroup to module scope
 
   // Scrolly state
   let currentSection = $state(0);
@@ -62,14 +64,15 @@
     const dateExtent = d3.extent(filteredData, d => d.tow_eligible_date);
     if (!dateExtent[0] || !dateExtent[1]) return null;
 
-    const dateGroups = d3.group(filteredData, d => d.tow_eligible_date);
-    const maxPlatesPerDate = d3.max(Array.from(dateGroups.values()), plates => plates.length);
+    const maxPlatesPerDate = d3.max(filteredData, d => d.n_plates);
     
     // Round up max plates to nearest 5
     const roundedMax = Math.ceil(maxPlatesPerDate / 5) * 5;
     
     // Update scales
+    console.log(dateExtent);
     x.domain(dateExtent);
+
     const y = d3.scaleLinear()
       .domain([0, roundedMax])
       .range([height - margin.bottom, margin.top]);
@@ -84,7 +87,13 @@
       .duration(500)
       .call(d3.axisBottom(x)
         .ticks(xTickCount)
-        .tickFormat(d3.timeFormat(dateFormat)));
+        .tickFormat(d3.timeFormat(dateFormat)))
+      .each(function() {
+        const ticks = d3.select(this).selectAll('.tick');
+        console.log('X-axis ticks:', ticks.data());
+        console.log('X-axis tick count:', ticks.size());
+        console.log('X-axis domain:', x.domain());
+      });
     
     svg.select('.y-axis')
       .transition()
@@ -92,7 +101,7 @@
       .call(d3.axisLeft(y)
         .ticks(yTickCount));
     
-    return y; // Return the new y scale for use in updating points
+    return { x, y }; // Return the new y scale for use in updating points
   }
 
   // Function to create the visualization
@@ -103,19 +112,31 @@
     svg = d3.select(container)
       .append('svg')
       .attr('width', width)
+      .attr('height', height)
+      .style('overflow', 'visible'); // Allow overflow for the SVG
+
+    // Add a clip path to prevent overflow in sections 0-3
+    svg.append('defs')
+      .append('clipPath')
+      .attr('id', 'plot-clip')
+      .append('rect')
+      .attr('width', width)
       .attr('height', height);
+
+    // Apply clip path to main group
+    mainGroup = svg.append('g')
+      .attr('clip-path', 'url(#plot-clip)');
 
     // Filter data for August 2024
     const augustData = data.filter(d => d.tow_eligible_date.getMonth() === 7 && d.tow_eligible_date.getFullYear() === 2024);
+
     
     // Add axes first with August-specific domain
     x = d3.scaleTime()
       .domain(d3.extent(augustData, d => d.tow_eligible_date))
       .range([margin.left, width - margin.right]);
 
-    const augustGroups = d3.group(augustData, d => d.tow_eligible_date);
-    const maxPlatesPerDate = d3.max(Array.from(augustGroups.values()), plates => plates.length);
-    const roundedMax = Math.ceil(maxPlatesPerDate / 5) * 5;
+    const roundedMax = Math.ceil(Math.max(...augustData.map(d => d.n_plates)) / 5) * 5;
 
     const y = d3.scaleLinear()
       .domain([0, roundedMax])
@@ -148,47 +169,9 @@
       .attr('transform', `rotate(-90) translate(${-innerHeight/2}, ${-margin.left + 75})`)
       .text('Number of plates entering judgement');
 
-    // Get all date groups for creating all nodes
-    const dateGroups = d3.group(data, d => d.tow_eligible_date);
-    const dateEntries = Array.from(dateGroups.entries());
+    topPlates = data;
 
-    // select top plate for each date
-    topPlates = dateEntries.map(([date, plates]) => {
-      // First, check for specific plates we want to ensure are selected
-      const specificPlates = [selectedPlate]; // Use the prop instead of hardcoded value
-      const specificPlate = plates.find(p => specificPlates.includes(p.plate));
-      if (specificPlate) {
-        return {
-          ...specificPlate,
-          n_plates: plates.length
-        };
-      }
-
-      // First, find plates that meet our criteria
-      const highPostViolationPlates = plates.filter(p => p.violations_post_tow_eligible > p.violations/2);
-      
-      // With set probability, select from high post-violation plates if any exist
-      if (highPostViolationPlates.length > 0 && Math.random() < sharePlatesMajorityViolationsPostTowEligible) {
-        // Randomly select one of the high post-violation plates
-        const selectedPlate = highPostViolationPlates[Math.floor(Math.random() * highPostViolationPlates.length)];
-        return {
-          ...selectedPlate,
-          n_plates: plates.length
-        };
-      }
-      
-      // Otherwise, find the plate with the most violations
-      const plateWithMostViolations = plates.reduce((max, current) => 
-        (current.violations > max.violations) ? current : max
-      , plates[0]);
-      
-      return {
-        ...plateWithMostViolations,
-        n_plates: plates.length
-      };
-    });
-
-    nodes = svg.selectAll('circle')
+    nodes = mainGroup.selectAll('circle')
       .data(topPlates)
       .enter()
       .append('circle')
@@ -254,7 +237,8 @@
       const csvText = await response.text();
       const violations = d3.csvParse(csvText, d => ({
         ...d,
-        violation_date: new Date(d.issue_date)
+        violation_date: new Date(d.issue_date),
+        is_paid: parseFloat(d.amount_due) === 0
       }));
       plateViolations.set(plate, violations);
     } catch (error) {
@@ -274,10 +258,10 @@
           .filter(d => d && d.tow_eligible_date) // Filter out any null/undefined entries
           .map(d => ({
             ...d,
-            tow_eligible_date: new Date(d.tow_eligible_date)
+            tow_eligible_date: new Date(d.tow_eligible_date),
+            n_plates: parseInt(d.n_plates)
           }))
-          .filter(d => !isNaN(d.tow_eligible_date.getTime())) // Filter out invalid dates
-          .filter(d => d.tow_eligible_date.getFullYear() === 2024)
+          .filter(d => !isNaN(d.tow_eligible_date.getTime())) 
           .sort((a, b) => a.tow_eligible_date - b.tow_eligible_date);
         
         // Create visualization immediately
@@ -297,26 +281,20 @@
 
       // Filter data for August 2024
       const augustData = data.filter(d => d.tow_eligible_date.getMonth() === 7 && d.tow_eligible_date.getFullYear() === 2024);
-      const y = regenerateAxes(augustData, "%b %d");
+      const { x: xScale, y: yScale } = regenerateAxes(augustData, "%b %d");
 
-      // Get August date groups
-      const augustGroups = d3.group(augustData, d => d.tow_eligible_date);
-      const augustEntries = Array.from(augustGroups.entries());
-      
       // Create a line generator for connecting circles
       const connectLine = d3.line()
-        .x(d => x(d.tow_eligible_date))
-        .y(d => y(d.n_plates))
+        .x(d => xScale(d.tow_eligible_date))
+        .y(d => yScale(d.n_plates))
         .curve(d3.curveMonotoneX);
 
       // Add or update the connecting line
       svg.selectAll('.connect-line').remove(); // Remove existing line if any
+
       svg.append('path')
         .attr('class', 'connect-line')
-        .datum(augustEntries.map(([date, plates]) => ({
-          tow_eligible_date: date,
-          n_plates: plates.length
-        })))
+        .datum(augustData)
         .attr('d', connectLine)
         .attr('fill', 'none')
         .attr('stroke', 'var(--primary-blue)')
@@ -330,16 +308,16 @@
       nodes
         .transition()
         .duration(500)
-        .attr('cx', d => x(d.tow_eligible_date))
-        .attr('cy', d => y(d.n_plates))
+        .attr('cx', d => xScale(d.tow_eligible_date))
+        .attr('cy', d => yScale(d.n_plates))
         .attr('opacity', (d) => (d.tow_eligible_date.getMonth() === 7 && d.tow_eligible_date.getFullYear() === 2024) ? CIRCLE_OPACITY : 0)
         .attr('fill', 'var(--primary-blue)');
     }
       
     else if (currentSection === 1) {
       // Reset to full view
-      const y = regenerateAxes(data);
-      if (!y) return;
+      const { x: xScale, y: yScale } = regenerateAxes(data);
+      if (!yScale) return;
       
       // Show axes and labels again
       svg.selectAll('.x-axis, .y-axis, .axis-label')
@@ -366,25 +344,25 @@
       const dateEntries = Array.from(dateGroups.entries());
       
       // Create rolling 90-day average data
-      const rollingAverageData = dateEntries.map(([date, plates], i) => {
+      const rollingAverageData = data.map((d, i) => {
         // Get the previous 90 days of data (or fewer if at the start)
         const startIdx = Math.max(0, i - 89);
-        const windowData = dateEntries.slice(startIdx, i + 1);
+        const windowData = data.slice(startIdx, i + 1);
         
         // Calculate average plates per day in the window
-        const totalPlates = windowData.reduce((sum, [_, plates]) => sum + plates.length, 0);
+        const totalPlates = windowData.reduce((sum, d) => sum + d.n_plates, 0);
         const avgPlates = totalPlates / windowData.length;
         
         return {
-          tow_eligible_date: date,
+          tow_eligible_date: d.tow_eligible_date,
           n_plates: avgPlates
         };
       });
 
       // Create a line generator for the rolling average
       const connectLine = d3.line()
-        .x(d => x(d.tow_eligible_date))
-        .y(d => y(d.n_plates))
+        .x(d => xScale(d.tow_eligible_date))
+        .y(d => yScale(d.n_plates))
         .curve(d3.curveMonotoneX);
 
       // Add or update the connecting line
@@ -405,8 +383,8 @@
       nodes
         .transition()
         .duration(500)
-        .attr('cx', d => x(d.tow_eligible_date))
-        .attr('cy', d => y(d.n_plates))
+        .attr('cx', d => xScale(d.tow_eligible_date))
+        .attr('cy', d => yScale(d.n_plates))
         .attr('opacity', CIRCLE_OPACITY)
         .attr('fill', 'var(--primary-blue)');
     }
@@ -414,112 +392,139 @@
     if (currentSection === 2) {
       nodes.transition()
         .duration(500)
-        .attr('fill', d => d.violations_post_tow_eligible > d.violations/2 ? 'var(--worst-offenders)' : 'var(--primary-blue)')
+        .attr('fill', d => d.violations_post_tow_eligible > 0 ? 'var(--worst-offenders)' : 'var(--primary-blue)')
         .attr('opacity', CIRCLE_OPACITY);
     }
 
     if (currentSection === 3) {
-      // Hide axes and labels
-      svg.selectAll('.x-axis, .y-axis, .axis-label')
-        .transition()
-        .duration(500)
-        .attr('opacity', 0);
 
-      svg.selectAll('.connect-line').remove(); // Remove existing line if any
-      svg.selectAll('.violation-label').remove(); // Remove any violation labels
-      svg.selectAll('.percentage-label').remove(); // Remove percentage labels
+    console.log(`nodes: ${nodes.size()}`);
+    // Hide axes and labels
+    svg.selectAll('.x-axis, .y-axis, .axis-label')
+      .transition()
+      .duration(500)
+      .attr('opacity', 0);
 
-      // Set SVG to allow overflow
-      svg.style('overflow', 'visible');
+    svg.selectAll('.connect-line').remove();
+    svg.selectAll('.violation-label, .percentage-label, .stack-label, .divider-label, .violation-divider').remove();
+    svg.style('overflow', 'visible');
 
-      // Define spiral boundaries
-      const binWidth = width / 3; // Width of each bin
-      const binHeight = height / 2; // Height of each bin
-      const leftBinX = width / 4; // Center of left bin
-      const rightBinX = 3 * width / 4; // Center of right bin
-      const binY = height / 2; // Center of bins vertically
-      // Use a constant gap of 2px between each node along the spiral
-      const gap = 10; // px between each node
-      const b = 6; // spiral tightness, adjust for visual preference
+    const NODE_SPACING = 20;
+    const outerRowLength = 17;
+    const middleRowLength = 20;
+    const rowLengths = [
+  ...Array(9).fill(17),           // top
+  ...Array(3).fill(20),        
+  ...Array(9).fill(17)            // bottom
+];
+    // Precompute start indices for each row
+    const rowStartIndices = rowLengths.reduce((acc, len, i) => {
+      const prev = acc[i - 1] || 0;
+      acc.push(prev + (i > 0 ? rowLengths[i - 1] : 0));
+      return acc;
+    }, []);
 
-      nodes
-        .transition()
-        .duration(500)
-        .attr('cx', d => {
-          const isRightSide = d.violations_post_tow_eligible > (d.violations) / 2;
-          const sameGroupNodes = Array.from(nodes.filter(n => 
-            (n.violations_post_tow_eligible > (n.violations) / 2) === isRightSide
-          ).data());
-          const groupIndex = sameGroupNodes.indexOf(d);
-
-          // Constant-gap spiral calculation
-          let theta = 0;
-          let r = 0;
-          for (let i = 0; i < groupIndex; i++) {
-            // r = b * theta
-            // dr/dtheta = b
-            // ds = sqrt(r^2 + (dr/dtheta)^2) dtheta
-            // dtheta = gap / sqrt(r^2 + b^2)
-            const dtheta = gap / Math.sqrt(r * r + b * b);
-            theta += dtheta;
-            r = b * theta;
-          }
-          const spiralX = Math.cos(theta) * r;
-          // Position in appropriate bin, mirror the right side
-          return isRightSide ? rightBinX - spiralX : leftBinX + spiralX;
-        })
-        .attr('cy', d => {
-          const isRightSide = d.violations_post_tow_eligible > (d.violations) / 2;
-          const sameGroupNodes = Array.from(nodes.filter(n => 
-            (n.violations_post_tow_eligible > (n.violations) / 2) === isRightSide
-          ).data());
-          const groupIndex = sameGroupNodes.indexOf(d);
-
-          // Constant-gap spiral calculation
-          let theta = 0;
-          let r = 0;
-          for (let i = 0; i < groupIndex; i++) {
-            const dtheta = gap / Math.sqrt(r * r + b * b);
-            theta += dtheta;
-            r = b * theta;
-          }
-          const spiralY = Math.sin(theta) * r;
-          // Position in appropriate bin
-          return binY + spiralY;
-        })
-        .attr('r', CIRCLE_RADIUS)
-        .attr('opacity', CIRCLE_OPACITY)
-        .attr('class', 'leaf-circle')
-        .style('cursor', 'pointer');
-
-      // Add labels for the stacks
-      svg.selectAll('.stack-label').remove();
-      svg.selectAll('.divider-label').remove();
-      svg.selectAll('.violation-divider').remove();
-      
-      // Helper function to create stack labels
-      function createStackLabel(x, y, text, yOffset = 0) {
-        return svg.append('text')
-          .attr('class', 'stack-label')
-          .attr('x', x)
-          .attr('y', y + yOffset)
-          .attr('text-anchor', 'middle')
-          .text(text)
-          .attr('opacity', 0)
-          .transition()
-          .duration(500)
-          .attr('opacity', 1);
+    function getRowAndColumn(index) {
+      let rowIndex = 0;
+      for (let i = 0; i < rowStartIndices.length; i++) {
+        if (index < rowStartIndices[i]) {
+          rowIndex = i - 1;
+          break;
+        } else if (i === rowStartIndices.length - 1) {
+          rowIndex = i;
+        }
       }
-
-      // Create stack labels
-      createStackLabel(leftBinX, binY - 220, 'Plates who mostly violate');
-      createStackLabel(rightBinX, binY - 220, 'Plates who mostly violate');
-      createStackLabel(leftBinX, binY - 200, `before entering judgement (${(1 - sharePlatesMajorityViolationsPostTowEligible) * 100}%)`);
-      createStackLabel(rightBinX, binY - 200, `after entering judgement (${sharePlatesMajorityViolationsPostTowEligible * 100}%)`);
-
+      const colIndex = index - rowStartIndices[rowIndex];
+      return { rowIndex, colIndex };
     }
-    
+
+    const gridWidth = Math.max(outerRowLength, middleRowLength) * NODE_SPACING;
+    const gridHeight = rowLengths.length * NODE_SPACING;
+    const startX = (width - gridWidth) / 2;
+    const startY = (height - gridHeight) / 2;
+
+    // Calculate 50% divider Y position
+    const halfIndex = Math.floor(nodes.size() * 0.5);
+    const { rowIndex: halfRow } = getRowAndColumn(halfIndex);
+    const halfY = startY + halfRow * NODE_SPACING;
+
+    // Draw divider
+    svg.append('line')
+      .attr('class', 'grid-divider')
+      .attr('x1', startX - 15)
+      .attr('x2', startX + gridWidth)
+      .attr('y1', halfY)
+      .attr('y2', halfY)
+      .attr('stroke', 'var(--worst-offenders-hover)')
+      .attr('stroke-width', 1)
+      .attr('stroke-dasharray', '4,4')
+      .attr('opacity', 0)
+      .transition()
+      .duration(500)
+      .attr('opacity', 1);
+
+    svg.append('text')
+      .attr('class', 'grid-divider-label')
+      .attr('x', startX + gridWidth + 10)
+      .attr('y', halfY)
+      .attr('text-anchor', 'start')
+      .attr('dominant-baseline', 'middle')
+      .attr('fill', 'var(--worst-offenders-hover)')
+      .attr('opacity', 0)
+      .text('50%')
+      .transition()
+      .duration(500)
+      .attr('opacity', 1);
+
+    // Sort nodes: blue first, then red
+    nodes = nodes.sort((a, b) => {
+      const aRed = a.violations_post_tow_eligible > 0;
+      const bRed = b.violations_post_tow_eligible > 0;
+      return aRed === bRed ? 0 : aRed ? 1 : -1;
+    });
+
+    // Reposition nodes
+    nodes
+      .transition()
+      .duration(500)
+      .attr('cx', (d, i) => {
+        const { rowIndex, colIndex } = getRowAndColumn(i);
+        const rowLength = rowLengths[rowIndex];
+        const rowStartX = (width - rowLength * NODE_SPACING) / 2;
+        return rowStartX + colIndex * NODE_SPACING;
+      })
+      .attr('cy', (d, i) => {
+        const { rowIndex } = getRowAndColumn(i);
+        return startY + rowIndex * NODE_SPACING;
+      })
+      .attr('r', CIRCLE_RADIUS)
+      .attr('opacity', CIRCLE_OPACITY)
+      .attr('class', 'leaf-circle')
+      .style('cursor', 'pointer');
+
+    // Add explanatory labels
+    function createStackLabel(x, y, text, yOffset = 0) {
+      return svg.append('text')
+        .attr('class', 'stack-label')
+        .attr('x', x)
+        .attr('y', y + yOffset)
+        .attr('text-anchor', 'middle')
+        .text(text)
+        .attr('opacity', 0)
+        .transition()
+        .duration(500)
+        .attr('opacity', 1);
+    }
+
+    createStackLabel(width / 2, startY - 40, "Plates who stop speeding");
+    createStackLabel(width / 2, startY - 20, `after entering judgement (${(1 - sharePlatesMajorityViolationsPostTowEligible) * 100}%)`);
+    createStackLabel(width / 2, startY + gridHeight + 20, 'Plates who continue speeding');
+    createStackLabel(width / 2, startY + gridHeight + 40, `after entering judgement (${sharePlatesMajorityViolationsPostTowEligible * 100}%)`);
+  }
     if (currentSection === 4) {
+      // Remove clip path for section 4 to allow overflow
+      mainGroup.attr('clip-path', null);
+      
       // Hide axes and labels
       svg.selectAll('.x-axis, .y-axis, .axis-label')
         .transition()
@@ -548,7 +553,53 @@
       const centerX = width / 2;
       const centerY = height / 2; // Use original height
 
+      // Create specificPlatesData array with both selected plate and side plates
+      const specificPlatesData = [selectedPlate, ...sidePlates]
+        .map(plate => topPlates.find(p => p.plate === plate))
+        .filter(Boolean); // Remove any undefined entries
+
+      // Log plate information and stack positions
+      console.log('Specific Plates Data:');
+      specificPlatesData.forEach((plate, index) => {
+        const yOffset = (index - 3.5) * 40;
+        console.log(`Plate: ${plate.plate}`);
+        console.log(`  Index: ${index}`);
+        console.log(`  Stack Position: ${centerY + yOffset}`);
+        console.log(`  Violations: ${plate.violations}`);
+        console.log(`  Post-tow Violations: ${plate.violations_post_tow_eligible}`);
+        console.log(`  Tow Eligible Date: ${plate.tow_eligible_date}`);
+        console.log('---');
+      });
+
+      // Add specific plates to topPlates if they don't exist
+      specificPlatesData.forEach(plate => {
+        if (!topPlates.find(p => p.plate === plate.plate)) {
+          topPlates.push(plate);
+        }
+      });
+
       // Update all nodes
+      nodes = mainGroup.selectAll('circle')
+        .data(topPlates)
+        .join('circle')
+        .attr('class', d => {
+          if (d.plate === targetNode.plate) {
+            return 'leaf-circle non-interactive';
+          }
+          return specificPlatesData.find(p => p.plate === d.plate) ? 'leaf-circle' : 'leaf-circle non-interactive';
+        })
+        .style('cursor', d => {
+          if (d.plate === targetNode.plate) {
+            return 'default';
+          }
+          return specificPlatesData.find(p => p.plate === d.plate) ? 'pointer' : 'default';
+        })
+        .attr('fill', d => {
+          // Preserve worst-offenders coloring for all nodes
+          return d.violations_post_tow_eligible > 0 ? 'var(--worst-offenders)' : 'var(--primary-blue)';
+        });
+
+      // Position all nodes
       nodes
         .transition()
         .duration(1000)
@@ -556,22 +607,71 @@
           if (d.plate === targetNode.plate) {
             return centerX;
           }
-          // Move other nodes to the edges
-          const isRightSide = d.violations_post_tow_eligible > (d.violations) / 2;
-          return isRightSide ? width - 50 : 50;
+          // Position side plates on the right
+          const index = specificPlatesData.findIndex(p => p.plate === d.plate);
+          if (index !== -1) {
+            return centerX + zoomRadius + 50; // Position just outside the zoomed circle
+          }
+          // Move other nodes off screen
+          return -50;
         })
         .attr('cy', d => {
           if (d.plate === targetNode.plate) {
             return centerY;
           }
-          // Distribute other nodes vertically
-          const index = topPlates.indexOf(d);
-          return (index % 2 === 0) ? 50 : height - 50; // Use original height for positioning
+          // Position side plates vertically
+          const index = specificPlatesData.findIndex(p => p.plate === d.plate);
+          if (index !== -1) {
+            // stack them vertically with 40px spacing, starting from the second position
+            const yOffset = (index - 3.5) * 40;
+            return centerY + yOffset;
+          }
+          // Move other nodes off screen
+          return -50;
         })
-        .attr('r', d => d.plate === targetNode.plate ? zoomRadius : CIRCLE_RADIUS)
-        .attr('opacity', d => d.plate === targetNode.plate ? CIRCLE_OPACITY : 0)
-        .attr('class', 'leaf-circle non-interactive')
-        .style('cursor', 'default');
+        .attr('r', d => {
+          if (d.plate === targetNode.plate) {
+            return zoomRadius;
+          }
+          return specificPlatesData.find(p => p.plate === d.plate) ? CIRCLE_RADIUS * 1.5 : 0; // Slightly larger side nodes
+        })
+        .attr('opacity', d => {
+          // Show both the target node and all specific plates
+          if (d.plate === targetNode.plate || specificPlatesData.find(p => p.plate === d.plate)) {
+            return CIRCLE_OPACITY;
+          }
+          return 0;
+        });
+
+      // Add click handlers for the side plates
+      nodes.filter(d => specificPlatesData.find(p => p.plate === d.plate))
+        .on('click', async function(event, d) {
+          // Load violations for the clicked plate
+          if (!plateViolations.has(d.plate)) {
+            await loadPlateViolations(d.plate);
+          }
+          
+          // Store the previous target node before updating
+          const previousTarget = targetNode;
+          
+          // Update selected plate
+          selectedPlate = d.plate;
+          
+          // Ensure the previous target node is in the stack
+          if (previousTarget && !sidePlates.includes(previousTarget.plate)) {
+            sidePlates = [previousTarget.plate, ...sidePlates.slice(0, -1)];
+          }
+          
+          // Clear all labels and lines
+          svg.selectAll('.percentage-label').remove();
+          svg.selectAll('.violation-label').remove();
+          svg.selectAll('.violation-divider').remove();
+          svg.selectAll('.divider-label').remove();
+          svg.selectAll('.connect-line').remove();
+          
+          // Trigger the visualization update
+          updateVisualization(4);
+        });
 
       // Remove any existing violation labels
       svg.selectAll('.violation-label').remove();
@@ -663,27 +763,42 @@
         return svg.selectAll(`.violation-label-${startIndex === 0 ? 'pre' : 'post'}`)
           .data(violations)
           .enter()
-          .append('text')
+          .append('g') // Create a group for each violation
           .attr('class', `violation-label ${startIndex === 0 ? '' : 'post-divider'}`)
-          .attr('x', (d, i) => {
+          .attr('transform', (d, i) => {
             const lineIndex = Math.floor(i / LABELS_PER_LINE);
             const positionInLine = i % LABELS_PER_LINE;
-            return startX + (positionInLine * (60 + LABEL_SPACING));
+            const x = startX + (positionInLine * (60 + LABEL_SPACING));
+            const y = startY + (lineIndex * lineHeight);
+            return `translate(${x},${y})`;
           })
-          .attr('y', (d, i) => {
-            const lineIndex = Math.floor(i / LABELS_PER_LINE);
-            return startY + (lineIndex * lineHeight);
-          })
-          .attr('text-anchor', 'start')
           .attr('opacity', 0)
           .each(function(d, i) {
-            const text = d3.select(this);
-            text.append('tspan')
-              .attr('fill', 'var(--worst-offenders-hover)')
-              .text(`${startIndex + i + 1} - `);
-            text.append('tspan')
-              .attr('fill', '#ffffff')
-              .text(d3.timeFormat("%b %d %Y")(d.violation_date));
+            const group = d3.select(this);
+            
+            // Add the violation number and date text
+            group.append('text')
+              .attr('text-anchor', 'start')
+              .each(function() {
+                const text = d3.select(this);
+                text.append('tspan')
+                  .attr('fill', 'var(--worst-offenders-hover)')
+                  .text(`${startIndex + i + 1} - `);
+                text.append('tspan')
+                  .attr('fill', '#ffffff')
+                  .text(d3.timeFormat("%b %d %Y")(d.violation_date));
+              });
+
+            // Add paid icon for paid violations
+            if (d.is_paid) {
+              group.append('image')
+                .attr('href', '/paid.png')
+                .attr('width', 60)
+                .attr('height', 30)
+                .attr('x', -20) // Position the icon to the right of the date
+                .attr('y', -20) // Adjust vertical position to align with text
+                .attr('filter', 'brightness(0) invert(1)'); // Make the image white
+            }
           })
           .transition()
           .delay((d, i) => delayOffset + (i * 100))
@@ -805,7 +920,7 @@
   :global(strong) {
     font-weight: 450;
   }
-  
+
   .spacer {
     height: 50vh;
   }

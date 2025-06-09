@@ -14,12 +14,16 @@ fines = pd.concat([
 # clean
 # *********************
 
-plate = 'LER5337'
+plates = [
+    'LLD1506', 'MBE1363', 'LEX6751',
+    'LCJ3416', 'RDE3018', 'KV476H', 
+    'JUA957', 'LNC2362', 'KJC7042']
 
-fines = fines[fines['plate'] == plate]
+selected_fines = fines[fines['plate'].isin(plates)]
 
 # *********************
 # save
 # *********************
 
-fines.to_csv(f'../../static/data/fines_plate_{plate}.csv', index=False)
+for plate in plates:
+    selected_fines[selected_fines['plate'] == plate].to_csv(f'../../static/data/fines_plate_{plate}.csv', index=False)

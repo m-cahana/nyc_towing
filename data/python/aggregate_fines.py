@@ -1,8 +1,5 @@
-
-
 import pandas as pd
 import datetime as dt
-from tqdm import tqdm
 
 # *********************
 # constants
@@ -97,9 +94,12 @@ def get_threshold_crossing_dates(fines, threshold=350):
     crossing = fines_in_judgement[fines_in_judgement['cumulative_due'] > threshold]
     # Keep only the first crossing per plate
     crossing = crossing.groupby(['plate', 'state', 'license_type']).first().reset_index()
+    
+    # now that the tow_eligible_date is really the issue date, we need to add 75 days to it
+    crossing['tow_eligible_date'] = crossing['issue_date'] + pd.Timedelta(days=judgement_date_diff_min)
+
     # Select relevant columns
-    crossing = crossing[['plate', 'state', 'license_type', 'issue_date', 'cumulative_due']]
-    crossing = crossing.rename(columns={'issue_date': 'tow_eligible_date'})
+    crossing = crossing[['plate', 'state', 'license_type', 'tow_eligible_date', 'cumulative_due']]
 
     return crossing
 
