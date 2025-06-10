@@ -13,7 +13,7 @@
         </p>
 
         <p class = 'methodology'>
-            In order to determine when a plate entered judgement, I determined when a plate acrrued ovre $350 in unpaid fines, and then what date would be 75 days after that moment of crossing $350. That's because, according to the <a href = 'https://www.nyc.gov/site/finance/vehicles/dispute-a-ticket-faqs.page' target="_blank" rel="noopener noreferrer" >NYC Department of Finance</a>, a camera violation goes into judgement if you don't pay or dispute it within 75 days, and a plate becomes eligible for booting/towing if it has <a href = 'https://www.nyc.gov/site/finance/vehicles/services-tickets-in-judgment.page' target="_blank" rel="noopener noreferrer" >over $350 of tickets in judgement</a>.
+            In order to determine when a plate entered judgement, I determined when a plate accrued over $350 in unpaid fines, and then what date would be 75 days after that moment of crossing $350. That's because, according to the <a href = 'https://www.nyc.gov/site/finance/vehicles/dispute-a-ticket-faqs.page' target="_blank" rel="noopener noreferrer" >NYC Department of Finance</a>, a camera violation goes into judgement if you don't pay or dispute it within 75 days, and a plate becomes eligible for booting/towing if it has <a href = 'https://www.nyc.gov/site/finance/vehicles/services-tickets-in-judgment.page' target="_blank" rel="noopener noreferrer" >over $350 of tickets in judgement</a>.
         </p>
 
         <p class = 'methodology'>
@@ -26,6 +26,7 @@
 
         <p class = 'methodology'>
             Some may wonder why I didn't try to determine the share of plates entering judgement that actually get towed by the city. This would shed light on how well the city's enforcement system is working. And it'd be a very interesting metric to compute, but unfortunately because the city only reports <span class = 'italic'>whether</span> a fine gets paid, not <span class = 'italic'>when</span> it gets paid, this metric is impossible to compute with public data. 
+        </p>
     </div>
 </footer>
 
@@ -67,6 +68,10 @@
         font-family: "Helvetica";
         font-weight: 300;
         text-align: center;
+    }
+
+    .italic {
+        font-style: italic;
     }
 
 </style> 

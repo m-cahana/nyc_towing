@@ -15,11 +15,11 @@
     <div class="subtitle">June 2025</div>
 
     <p>
-        As <a href="https://streetsblog.org/2025/04/10/thousands-of-cars-speed-rampantly-through-new-york-citys-school-zones-without-facing-consequences/" target="_blank">Streetsblog reported in April</a>, thousands of cars speed rampantly through New York City's school zones without facing consequences. This occurs, in part, because the city doesn't cap the number of speeding tickets a driver can rack up; as long as a driver pays their tickets, they can continue speedingly endlessly.
+        As <a href="https://streetsblog.org/2025/04/10/thousands-of-cars-speed-rampantly-through-new-york-citys-school-zones-without-facing-consequences/" target="_blank">Streetsblog reported in April</a>, thousands of cars speed rampantly through New York City's school zones without facing consequences. This occurs, in part, because the city doesn't cap the number of speeding fines a driver can rack up; as long as a driver pays their fines, they can continue speedingly endlessly.
     </p>
 
     <p>
-        But this investigation identifies another factor behind the city's unsafe streets: the laws currently on the books to deter speeding often go unenforced. Even if drivers don't pay their fines, they can get away with repeatedly speeding. Consider the chart below: 
+        But this investigation identifies another factor behind the city's unsafe streets: the laws currently on the books to deter speeding often go unenforced. Even if drivers don't pay their fines, they can get away with repeated speeding. Consider the chart below: 
     </p>
 
     <Barplot />
@@ -29,29 +29,31 @@
     </p>
 
     <p>
-        It could be because recidivist speeders face very high fine totals, and find them difficult to pay off. But it's also possible that these recidivist speeders have learned to game the city's ticketing system. Through repeated violations, they might have uncovered a useful loophole: the city doesn't actually force all drivers to pay their fines. 
+        It could be because recidivist speeders face very high fine totals, and find them difficult to pay off. But it's also possible that these recidivist speeders have learned to game the city's fine system. Through repeated violations, they might have uncovered a useful loophole: the city doesn't actually force all drivers to pay their fines. 
     </p>
 
     <p>
-        The city's laws currently say that any driver who accrues over $350 in fines (which translates to 5 unpaid school zone tickets when you factor in late fees) and doesn't pay them within 75 days will be deemed "in judgement". In theory, vehicles in judgement should be booted, and subsequently towed if a driver doesn't pay up their judgement debt <a href="https://www.nyc.gov/site/finance/vehicles/services-booting.page" target="_blank">within 48 hours of the boot</a>. This law is meant to ensure that a driver faces real consequences for ignoring unpaid fines.
+        The city's laws currently dictate that any driver who accrues over $350 in fines (which translates to 5 unpaid school zone tickets when you factor in late fees), and doesn't pay them within 75 days, will be deemed "in judgement". In theory, vehicles in judgement should be booted, and then towed if a driver doesn't pay up their judgement debt <a href="https://www.nyc.gov/site/finance/vehicles/services-booting.page" target="_blank">within 48 hours of the boot</a>. This law is meant to ensure drivers actually pay their fines, and face real inconvenience when ignoring them.
     </p>
 
     <p>
-        But our investigation shows that every month, thousands of recidivist speeders enter judgement, never pay off their fine debt, and never get booted or towed. 
+        But our investigation shows something else happening. Every month, thousands of recidivist speeders enter judgement, never pay off their fine debt, and never get booted or towed either. 
     </p>
 
     <TowPlates />
 
     <p>
-        These scofflaw drivers represent over $24 million in lost revenue for the city in the form of uncollected fines. Over $5.7 million of these fines were accrued after these vehicles entered judgement, the result of over 80,000 school zone violations that should have never occurred. 
+        These scofflaws represent over $24 million in lost revenue for the city, in the form of uncollected fines. 
+        More importantly, they represent a continued risk to public safety, racking up over 80,000 school zone violations that would have never occurred if the city's laws were properly enforced. 
     </p>
 
     <p>
-        Most importantly, these drivers represent a continued risk to the public. A risk that the city, according to its own laws, should prevent. But whether through negligence or lack of resources, it's been unable to do so. Tens of thousands of them continue to speed through school zones when they should be booted. At least some must have figured out that they can get away with it. 
+        But since enforcement isn't comprehensive, tens of thousands of drivers continue to speed long after they should have been stopped. Some of them must have figured out that they can just get away with it. And why not? There's ample precedent for drivers speeding, ignoring fines, and never paying up. 
     </p>
-
-    <Footer />
+    
 </main>
+
+<Footer />
 
 
 <style>
