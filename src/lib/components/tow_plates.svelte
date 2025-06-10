@@ -748,7 +748,7 @@
           svg.append('text')
             .attr('class', 'divider-label')
             .attr('x', startX - 30)
-            .attr('y', centerY - 10)
+            .attr('y', preViolations.length > 32 ? centerY + 20 : centerY - 10)
             .attr('text-anchor', 'left')
             .attr('opacity', 0)
             .text(() => {
