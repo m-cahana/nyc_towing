@@ -19,25 +19,25 @@
     </p>
 
     <p>
-        But our investigation identifies another factor behind our unsafe streets: the laws currently on the books to deter speeding often go unenforced. Even if drivers don't pay their fines, they can get away with repeatedly speeding. Consider the chart below: 
+        But this investigation identifies another factor behind the city's unsafe streets: the laws currently on the books to deter speeding often go unenforced. Even if drivers don't pay their fines, they can get away with repeatedly speeding. Consider the chart below: 
     </p>
 
     <Barplot />
 
     <p>
-        This chart shows that as drivers commit more speeding violations, they pay out a smaller share of their fines. Drivers with 1-5 violations pay almost all of their fines, but drivers who commit 100+ violations only pay a quarter of their fines. Why is that?
+        This chart shows that as drivers commit more speeding violations, they pay a smaller share of their fines. Drivers with 1-5 violations pay almost all of their fines, but drivers who commit 100+ violations only pay a quarter of their fines. Why is that?
     </p>
 
     <p>
-        It could be because recidivist speeders face very high fine totals, and find them more difficult to pay off. But it's also possible that these recidivist speeders have learned to game the city's ticketing system. Through repeated violations, they seem to have identified a useful loophole: the city doesn't actually force all drivers to pay their fines. 
+        It could be because recidivist speeders face very high fine totals, and find them difficult to pay off. But it's also possible that these recidivist speeders have learned to game the city's ticketing system. Through repeated violations, they might have uncovered a useful loophole: the city doesn't actually force all drivers to pay their fines. 
     </p>
 
     <p>
-        The city's laws currently say that any driver who accrues over $350 in fines (which translates to 5 unpaid school zone tickets when you factor in late fees) and doesn't pay them within 75 days should be deemed "in judgement" by the city. In theory, vehicles in judgement should be booted, and subsequently towed if a driver doesn't pay up their judgement debt <a href="https://www.nyc.gov/site/finance/vehicles/services-booting.page" target="_blank">within 48 hours of the boot</a>. This law is meant to ensure that a driver faces consequences for repeated violations.
+        The city's laws currently say that any driver who accrues over $350 in fines (which translates to 5 unpaid school zone tickets when you factor in late fees) and doesn't pay them within 75 days will be deemed "in judgement". In theory, vehicles in judgement should be booted, and subsequently towed if a driver doesn't pay up their judgement debt <a href="https://www.nyc.gov/site/finance/vehicles/services-booting.page" target="_blank">within 48 hours of the boot</a>. This law is meant to ensure that a driver faces real consequences for ignoring unpaid fines.
     </p>
 
     <p>
-        But our investigation shows that every month, thousands of recidivist speeders enter judgement, and never get booted or towed. 
+        But our investigation shows that every month, thousands of recidivist speeders enter judgement, never pay off their fine debt, and never get booted or towed. 
     </p>
 
     <TowPlates />
@@ -47,7 +47,7 @@
     </p>
 
     <p>
-        Most importantly, these scofflaws represent a continued risk to the public. Tens of thousands of them continue to speed, and seem to understand that they can get away with it. 
+        Most importantly, these drivers represent a continued risk to the public. A risk that the city, according to its own laws, should prevent. But whether through negligence or lack of resources, it's been unable to do so. Tens of thousands of them continue to speed through school zones when they should be booted. At least some must have figured out that they can get away with it. 
     </p>
 
     <Footer />

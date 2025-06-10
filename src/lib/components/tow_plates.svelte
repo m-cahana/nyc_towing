@@ -37,19 +37,19 @@
   const scrollSections = [
     {
       title: "",
-      content: "Let's look at data from last August, for example. Each day this month, nearly 100 speeders entered judgement, and have no record of later being booted or towed."
+      content: "Let's look at data from August 2024, for example. <span style='color: var(--primary-blue)'>Each day this month, nearly 100 speeders entered judgement</span>, and have no record of later being booted or towed."
     },
     {
       title: "",
-      content: "If we zoom out and track this phenomenon over the course of a year, we see a consistent pattern: nearly one hundred speeders each day enter judgement and successfully evade enforcement, translating to over 30,000 plates a year."
+      content: "If we track this phenomenon over the course of a year, we see a consistent pattern: nearly one hundred speeders each day enter judgement and successfully evade enforcement, translating to <span style='color: var(--primary-blue)'>over 30,000 plates a year</span>."
     },
     {
       title: "",
-      content: "Since these plates don't get booted or towed, they're free to continue speeding. Many of them do (colored in dark blue)."
+      content: "Since these plates don't get booted or towed, they're free to continue speeding. Many of them <span style='color: var(--worst-offenders)'>speed after entering judgement</span> (colored in dark blue)."
     },
     {
       title: "",
-      content: "In fact, 48% of these speeders keep speeding after entering judgement, committing violations that would have never happened if the city comprehensively enforced the law."
+      content: "In fact, <span style='color: var(--worst-offenders)'>48% of these speeders keep speeding after entering judgement</span>, committing violations that would have never happened if the city comprehensively enforced the law."
     }, 
     {
       title: "",
