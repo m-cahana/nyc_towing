@@ -19,7 +19,7 @@
     </p>
 
     <p>
-        But this investigation identifies another factor behind our unsafe streets: the laws currently on the books to deter speeding often go unenforced. Even if drivers don't pay their fines, they can get away with repeatedly speeding. Consider the chart below: 
+        But our investigation identifies another factor behind our unsafe streets: the laws currently on the books to deter speeding often go unenforced. Even if drivers don't pay their fines, they can get away with repeatedly speeding. Consider the chart below: 
     </p>
 
     <Barplot />
@@ -29,15 +29,15 @@
     </p>
 
     <p>
-        It could be because recidivist speeders face very high fine totals, and find them more difficult to pay off. But it's also possible that these recidivist speeders are more familiar with the city's ticketing system, and have identified a loophole: the city isn't very good at enforcing the laws on the books. 
+        It could be because recidivist speeders face very high fine totals, and find them more difficult to pay off. But it's also possible that these recidivist speeders have learned to game the city's ticketing system. Through repeated violations, they seem to have identified a useful loophole: the city doesn't actually force all drivers to pay their fines. 
     </p>
 
     <p>
-        The laws currently say that any driver who accrues over $350 in fines (which translates to 5 unpaid school zone tickets when you factor in late fees) and doesn't pay them within 75 days should be deemed "in judgement" by the city. In theory, vehicles in judgement should be booted, and subsequently towed if a driver doesn't pay up their judgement debt <a href="https://www.nyc.gov/site/finance/vehicles/services-booting.page" target="_blank">within 48 hours of the boot</a>. 
+        The city's laws currently say that any driver who accrues over $350 in fines (which translates to 5 unpaid school zone tickets when you factor in late fees) and doesn't pay them within 75 days should be deemed "in judgement" by the city. In theory, vehicles in judgement should be booted, and subsequently towed if a driver doesn't pay up their judgement debt <a href="https://www.nyc.gov/site/finance/vehicles/services-booting.page" target="_blank">within 48 hours of the boot</a>. This law is meant to ensure that a driver faces consequences for repeated violations.
     </p>
 
     <p>
-        But this investigation shows that every month, thousands of recidivist speeders enter judgement, and never get booted or towed. 
+        But our investigation shows that every month, thousands of recidivist speeders enter judgement, and never get booted or towed. 
     </p>
 
     <TowPlates />
