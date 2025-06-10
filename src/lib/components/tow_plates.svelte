@@ -589,7 +589,7 @@
           const index = specificPlatesData.findIndex(p => p.plate === d.plate);
           if (index !== -1) {
             // stack them vertically with 40px spacing, starting from the second position
-            const yOffset = (index - 3.5) * 40;
+            const yOffset = (index - 4.5) * 40;
             return centerY + yOffset;
           }
           // Move other nodes off screen
@@ -623,9 +623,9 @@
           // Update selected plate
           selectedPlate = d.plate;
           
-          // Ensure the previous target node is in the stack
+          // Ensure the previous target node is in the stack, removing the oldest plate instead of the last one
           if (previousTarget && !sidePlates.includes(previousTarget.plate)) {
-            sidePlates = [previousTarget.plate, ...sidePlates.slice(0, -1)];
+            sidePlates = [previousTarget.plate, ...sidePlates.slice(1)];
           }
           
           // Clear all labels and lines
