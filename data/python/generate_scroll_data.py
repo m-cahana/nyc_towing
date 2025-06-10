@@ -22,55 +22,56 @@ tow_cases.tow_date = pd.to_datetime(tow_cases.tow_date)
 fine_agg.tow_eligible_date = pd.to_datetime(fine_agg.tow_eligible_date)
 
 tow_cases['first_action_date'] = tow_cases[['boot_date', 'tow_date']].min(axis=1)
+tow_cases['last_action_date'] = tow_cases[['boot_date', 'tow_date']].max(axis=1)
 
+unique_tow_plates = tow_cases.groupby(['plate_id', 'license_plate_issuing_state', 'license_plate_type']).agg(
+  first_action_date = ('first_action_date', 'min'),
+  last_action_date = ('last_action_date', 'max')
+).reset_index()
 
 # *********************
 # filter 
 # *********************
 
+fine_agg_with_tows = fine_agg.merge(
+  unique_tow_plates,
+  left_on=['plate', 'state', 'license_type'],
+  right_on=['plate_id', 'license_plate_issuing_state', 'license_plate_type'], 
+  how='left')
+
+
 # plates that require towing
-plates_to_tow = fine_agg[fine_agg.tow_eligible_date.notna()]
+plates_to_tow = fine_agg_with_tows[fine_agg_with_tows.tow_eligible_date.notna()]
 
 plates_to_tow = plates_to_tow[plates_to_tow.tow_eligible_date.dt.year == 2024]
 
-recent_tows = fine_agg.merge(tow_cases, left_on=['plate', 'state', 'license_type'], right_on=['plate_id', 'license_plate_issuing_state', 'license_plate_type'], how='inner')
+# plates that were not towed
+non_tows = fine_agg_with_tows[(fine_agg_with_tows.last_action_date.isna()) | (fine_agg_with_tows.last_action_date < fine_agg_with_tows.tow_eligible_date)]
 
-recent_tows = recent_tows[recent_tows.first_action_date.dt.year == 2024]
-
-
-# *********************
-# plot
-# *********************
-
-# sketch plot to later createa in d3
-
-# Set seaborn style
-sns.set_style("whitegrid")
-
-# aggregate to date level
-plates_to_tow_agg = plates_to_tow.groupby('tow_eligible_date').agg(plates = ('plate', 'count')).reset_index()
-
-recent_tows_agg = recent_tows.groupby('first_action_date').agg(plates = ('plate', 'count')).reset_index()
+non_tows = non_tows[non_tows.tow_eligible_date.dt.year == 2024]
 
 
-# create 7 day rolling averages
-plates_to_tow_agg['plates_7day'] = plates_to_tow_agg['plates'].rolling(window=7).mean()
-
-recent_tows_agg['plates_7day'] = recent_tows_agg['plates'].rolling(window=7).mean()
-
-
-
-# plot
-sns.lineplot(data=plates_to_tow_agg, x='tow_eligible_date', y='plates_7day', label='Plates Eligible for Tow')
-sns.lineplot(data=recent_tows_agg, x='first_action_date', y='plates_7day', label='Plates Actually Towed')
-
+comparison_df = plates_to_tow.merge(
+  non_tows,
+  on=['plate', 'state', 'license_type'],
+  indicator=True,
+  how='left',
+  suffixes=('_tow', '_not_tow')
+)
 
 # *********************
 # metric
 # *********************
 
+print(f"""
+      {
+        non_tows.shape[0] / plates_to_tow.shape[0]
+      } share of plates not towed post eligibility
+      """)
 
 post_eligible_plates = plates_to_tow[plates_to_tow.violations_post_tow_eligible > 0]
+
+post_eligible_non_tows = non_tows[non_tows.violations_post_tow_eligible > 0]
 
 print(f"""
     share of plates with violations post tow eligible date: 
@@ -80,19 +81,26 @@ print(f"""
 """)
 
 print(f"""
-      stats among these plates:
+    share of non-towed plates with violations post tow eligible date: 
+    
+      {
+        post_eligible_non_tows.shape[0] / non_tows.shape[0]} or {post_eligible_non_tows.shape[0]} plates
+""")
+
+print(f"""
+      stats among these non-towed plates:
 
      {
-        round(post_eligible_plates.violations.mean(), 2)
+        round(post_eligible_non_tows.violations.mean(), 2)
       } violations on average
 
 
       {
-        round(post_eligible_plates.violations_post_tow_eligible.mean(), 2)
+        round(post_eligible_non_tows.violations_post_tow_eligible.mean(), 2)
       } violations post tow eligible on average
       """)
 
-violation_post_tow_eligible_share = post_eligible_plates.shape[0] / plates_to_tow.shape[0]
+violation_post_tow_eligible_share = post_eligible_non_tows.shape[0] / non_tows.shape[0]
 
 # *********************
 # sample
@@ -100,18 +108,18 @@ violation_post_tow_eligible_share = post_eligible_plates.shape[0] / plates_to_to
 
 fine_agg_daily_sample = pd.DataFrame()
 
-for date in plates_to_tow.tow_eligible_date.unique():
-    plates_to_tow_date = plates_to_tow[plates_to_tow.tow_eligible_date == date]
+for date in non_tows.tow_eligible_date.unique():
+    non_tows_date = non_tows[non_tows.tow_eligible_date == date]
 
-    n_plates = plates_to_tow_date.shape[0]
+    n_plates = non_tows_date.shape[0]
     if (random.random() < violation_post_tow_eligible_share):
-        sample_plate = plates_to_tow_date[plates_to_tow_date.violations_post_tow_eligible > 0].sample(1)
+        sample_plate = non_tows_date[non_tows_date.violations_post_tow_eligible > 0].sample(1)
 
         sample_plate['n_plates'] = n_plates
 
         fine_agg_daily_sample = pd.concat([fine_agg_daily_sample, sample_plate])
     else:
-        sample_plate = plates_to_tow_date[plates_to_tow_date.violations_post_tow_eligible == 0].sample(1)
+        sample_plate = non_tows_date[non_tows_date.violations_post_tow_eligible == 0].sample(1)
         sample_plate['n_plates'] = n_plates
         fine_agg_daily_sample = pd.concat([fine_agg_daily_sample, sample_plate])
 

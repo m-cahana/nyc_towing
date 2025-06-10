@@ -11,9 +11,10 @@
         height = 500,
         CIRCLE_RADIUS = 5,
         CIRCLE_OPACITY = 0.8,
-        selectedPlate = 'KJC7042',
-        sidePlates = ['LLD1506', 'MBE1363', 'LEX6751', 'LCJ3416', 'RDE3018', 'KV476H', 'JUA957', 'LNC2362', 'KJC7042'],
-        sharePlatesMajorityViolationsPostTowEligible = .53,
+        selectedPlate = 'KJM6620',
+        sidePlates = ['JCC5743', 'JUA957', 
+        '126BH0', 'LCT2817', 'LCB8694', 
+        'W69PBV', 'JZH5211', 'RTH0590'],
         margin = { top: 20, right: 20, bottom: 100, left: 60 },
     } = $props();
 
@@ -742,6 +743,8 @@
         .attr('opacity', 1)
         .on('end', () => {
           // Add the text label for the divider after the line appears
+          const nextDay = new Date(targetNode.tow_eligible_date);
+          nextDay.setDate(nextDay.getDate() + 1);
           svg.append('text')
             .attr('class', 'divider-label')
             .attr('x', startX + 20)
@@ -749,9 +752,7 @@
             .attr('text-anchor', 'left')
             .attr('opacity', 0)
             .text(() => {
-              console.log('Raw tow_eligible_date:', targetNode.tow_eligible_date);
-              console.log('Formatted date:', d3.timeFormat("%B %d, %Y")(targetNode.tow_eligible_date));
-              return `${targetNode.plate} becomes tow eligible on ${d3.timeFormat("%B %d, %Y")(targetNode.tow_eligible_date)}`;
+              return `${targetNode.plate} becomes tow eligible on ${d3.timeFormat("%B %d, %Y")(nextDay)}`;
             })
             .transition()
             .duration(500)
