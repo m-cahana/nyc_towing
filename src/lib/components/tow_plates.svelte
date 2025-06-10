@@ -45,11 +45,11 @@
     },
     {
       title: "",
-      content: "Since these plates don't get booted or towed, they're free to continue speeding after entering judgement. And many of them do (colored in dark blue)."
+      content: "Since these plates don't get booted or towed, they're free to continue speeding. Many of them do (colored in dark blue)."
     },
     {
       title: "",
-      content: "In fact, roughly half of these speeders keep speeding after entering judgement, committing violations that would have never happened if the city comprehensively enforced the law."
+      content: "In fact, 48% of these speeders keep speeding after entering judgement, committing violations that would have never happened if the city comprehensively enforced the law."
     }, 
     {
       title: "",

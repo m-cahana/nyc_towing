@@ -25,15 +25,15 @@
     <Barplot />
 
     <p>
-        This chart shows that drivers who commit more speeding violations pay out a smaller share of their outstanding fines. Drivers who commit only a handful of violations pay almost all of their fines, but drivers who commit hundreds of violations only pay roughly a quarter of their fines. Why is that?
+        This chart shows that as drivers commit more speeding violations, they pay out a smaller share of their fines. Drivers with 1-5 violations pay almost all of their fines, but drivers who commit 100+ violations only pay a quarter of their fines. Why is that?
     </p>
 
     <p>
-        It could be because recidivist speeders face very high fine totals, and find them more difficult to pay off. But it's also possible that these recidivist speeders have become more familiar with the city's ticketing system, and have identified a loophole: the city isn't very good at enforcing the laws on the books. 
+        It could be because recidivist speeders face very high fine totals, and find them more difficult to pay off. But it's also possible that these recidivist speeders are more familiar with the city's ticketing system, and have identified a loophole: the city isn't very good at enforcing the laws on the books. 
     </p>
 
     <p>
-        The law dictates that any driver who accrues over $350 in fines (which translates to 5 unpaid school zone tickets when you factor in late fees) and doesn't pay them within 75 days should be deemed "in judgement" by the city. In theory, vehicles in judgement should be booted, and subsequently towed if a driver doesn't pay up their judgement debt <a href="https://www.nyc.gov/site/finance/vehicles/services-booting.page" target="_blank">within 48 hours of the boot</a>. 
+        The laws currently say that any driver who accrues over $350 in fines (which translates to 5 unpaid school zone tickets when you factor in late fees) and doesn't pay them within 75 days should be deemed "in judgement" by the city. In theory, vehicles in judgement should be booted, and subsequently towed if a driver doesn't pay up their judgement debt <a href="https://www.nyc.gov/site/finance/vehicles/services-booting.page" target="_blank">within 48 hours of the boot</a>. 
     </p>
 
     <p>
