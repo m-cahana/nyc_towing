@@ -643,12 +643,11 @@
       svg.selectAll('.violation-label').remove();
       svg.selectAll('.violation-divider').remove();
 
-      // Calculate separate starting positions for pre and post labels
-      const startX = centerX - 250; 
-     
-      const lineHeight = 20; // Slightly increased for better readability
+
+      const startX = centerX - 220; 
+      const lineHeight = 20; 
       const LABELS_PER_LINE = 4;
-      const LABEL_SPACING = 70; // pixels between labels on same line
+      const LABEL_SPACING = 55; // pixels between labels on same line
 
       // Find the index where violations cross the tow-eligible date
       const towEligibleDate = targetNode.tow_eligible_date;
@@ -663,7 +662,6 @@
       const postPercentage = totalUnpaidViolations > 0 ? ((postViolations.length / totalUnpaidViolations) * 100).toFixed(0) : 0;
 
       // Calculate vertical spacing for each half
-     
       const preStartY = centerY - zoomRadius * 0.5; 
       const postStartY = centerY + zoomRadius * 0.2; 
       const labelYOffset = 60;
@@ -671,17 +669,19 @@
       // Add title label
       svg.append('text')
         .attr('class', 'title-label')
-        .attr('x', centerX)
+        .attr('x', centerX - 200)
         .attr('y', preStartY - labelYOffset)
-        .attr('text-anchor', 'middle')
+        .attr('text-anchor', 'left')
         .attr('opacity', 0)
         .each(function() {
           const text = d3.select(this);
           text.append('tspan')
+            .style('text-decoration', 'underline')
             .text(`${targetNode.plate}'s unpaid tickets`);
           text.append('tspan')
             .attr('dy', '1.2em')
-            .attr('x', centerX)
+            .attr('x', centerX - 180)
+            .style('text-decoration', 'underline')
             .text(`(${postPercentage}% occur after entering judgment)`);
         })
         .transition()
@@ -747,7 +747,7 @@
           nextDay.setDate(nextDay.getDate() + 1);
           svg.append('text')
             .attr('class', 'divider-label')
-            .attr('x', startX + 20)
+            .attr('x', startX - 30)
             .attr('y', centerY - 10)
             .attr('text-anchor', 'left')
             .attr('opacity', 0)
@@ -941,6 +941,7 @@
 
   :global(.violation-label) {
     fill: #ffffff;
+    font-size: 14px;
   }
 
   :global(.violation-label.post-divider) {
