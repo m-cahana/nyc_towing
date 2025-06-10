@@ -5,7 +5,7 @@
 
         <h2>Methodology</h2>
         <p class = 'methodology'>
-            fill in
+            FILL IN
         </p>
     </div>
 </footer>
