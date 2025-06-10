@@ -15,19 +15,39 @@
     <div class="subtitle">June 2025</div>
 
     <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+        As <a href="https://streetsblog.org/2025/04/10/thousands-of-cars-speed-rampantly-through-new-york-citys-school-zones-without-facing-consequences/" target="_blank">Streetsblog reported in April</a>, thousands of cars speed rampantly through New York City's school zones without facing consequences. This occurs, in part, because the city doesn't cap the number of speeding tickets a driver can rack up; as long as a driver pays their tickets, they can continue speedingly endlessly.
+    </p>
+
+    <p>
+        But this investigation identifies another factor behind our unsafe streets: the laws currently on the books to deter speeding often go unenforced. Even if drivers don't pay their fines, they can get away with repeatedly speeding. Consider the chart below: 
     </p>
 
     <Barplot />
 
     <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+        This chart shows that drivers who commit more speeding violations pay out a smaller share of their outstanding fines. Drivers who commit only a handful of violations pay almost all of their fines, but drivers who commit hundreds of violations only pay roughly a quarter of their fines. Why is that?
+    </p>
+
+    <p>
+        It could be because recidivist speeders face very high fine totals, and find them more difficult to pay off. But it's also possible that these recidivist speeders have become more familiar with the city's ticketing system, and have identified a loophole: the city isn't very good at enforcing the laws on the books. 
+    </p>
+
+    <p>
+        The law dictates that any driver who accrues over $350 in fines (which translates to 5 unpaid school zone tickets when you factor in late fees) and doesn't pay them within 75 days should be deemed "in judgement" by the city. In theory, vehicles in judgement should be booted, and subsequently towed if a driver doesn't pay up their judgement debt <a href="https://www.nyc.gov/site/finance/vehicles/services-booting.page" target="_blank">within 48 hours of the boot</a>. 
+    </p>
+
+    <p>
+        But this investigation shows that every month, thousands of recidivist speeders enter judgement, and never get booted or towed. 
     </p>
 
     <TowPlates />
 
     <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+        These scofflaw drivers represent over $24 million in lost revenue for the city in the form of uncollected fines. Over $5.7 million of these fines were accrued after these vehicles entered judgement, the result of over 80,000 school zone violations that should have never occurred. 
+    </p>
+
+    <p>
+        Most importantly, these scofflaws represent a continued risk to the public. Tens of thousands of them continue to speed, and seem to understand that they can get away with it. 
     </p>
 
     <Footer />

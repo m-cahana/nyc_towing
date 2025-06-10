@@ -37,23 +37,23 @@
   const scrollSections = [
     {
       title: "",
-      content: "Let's look at when vehicles become eligible for towing in 2024."
+      content: "Let's look at data from last August, for example. Each day this month, nearly 100 speeders entered judgement, and have no record of later being booted or towed."
     },
     {
       title: "",
-      content: "Let's focus on August 2024, when many vehicles become eligible for towing."
+      content: "If we zoom out and track this phenomenon over the course of a year, we see a consistent pattern: nearly one hundred speeders each day enter judgement and successfully evade enforcement, translating to over 30,000 plates a year."
     },
     {
       title: "",
-      content: "The height of each stack shows how many vehicles become eligible on that day."
+      content: "Since these plates don't get booted or towed, they're free to continue speeding after entering judgement. And many of them do (colored in dark blue)."
     },
     {
       title: "",
-      content: "Let's look at one specific vehicle in detail."
+      content: "In fact, roughly half of these speeders keep speeding after entering judgement, committing violations that would have never happened if the city comprehensively enforced the law."
     }, 
     {
       title: "",
-      content: "Let's look at one specific vehicle in detail."
+      content: "Here's an example of a driver who kept on speeding long after entering judgement. If you click on dots to the right, you can view a few other examples."
     }
   ];
 
@@ -752,7 +752,7 @@
             .attr('text-anchor', 'left')
             .attr('opacity', 0)
             .text(() => {
-              return `${targetNode.plate} becomes tow eligible on ${d3.timeFormat("%B %d, %Y")(nextDay)}`;
+              return `${targetNode.plate} enters judgement on ${d3.timeFormat("%B %d, %Y")(nextDay)}`;
             })
             .transition()
             .duration(500)

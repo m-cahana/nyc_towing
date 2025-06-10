@@ -69,6 +69,35 @@ print(f"""
       } share of plates not towed post eligibility
       """)
 
+print(f"""
+      {
+        non_tows.shape[0] 
+      } total plates not towed post eligibility
+      """)
+
+print(f"""
+      {
+        non_tows.amount_due_post_tow_eligible.sum()
+      } total fines due post tow eligible, 
+      from {
+        non_tows.violations_post_tow_eligible.sum()
+      } violations post tow eligible
+      """)
+
+print(f"""
+      { round(
+        non_tows.amount_due.sum(), 0)
+      } total fines due, 
+      """)
+
+print(f"""
+      {
+        non_tows.amount_due_post_tow_eligible.sum() / non_tows.amount_due.sum()
+      } share of total fines not paid post tow eligible
+      """)
+
+
+
 post_eligible_plates = plates_to_tow[plates_to_tow.violations_post_tow_eligible > 0]
 
 post_eligible_non_tows = non_tows[non_tows.violations_post_tow_eligible > 0]

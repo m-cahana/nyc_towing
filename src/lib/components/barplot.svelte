@@ -37,7 +37,7 @@
             .attr("text-anchor", "middle")
             .attr("x", innerWidth / 2)
             .attr("y", -margin.top / 2)
-            .text("Drivers are less likely to pay fines the more they violate");
+            .text("Drivers are less likely to pay fines the more they speed");
 
         // X axis
         const x = d3.scaleBand()
