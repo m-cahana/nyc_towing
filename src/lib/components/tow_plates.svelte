@@ -37,11 +37,11 @@
   const scrollSections = [
     {
       title: "",
-      content: "Let's look at data from August 2024, for example. <span style='background-color: var(--primary-blue); color: white;'>Each day this month, nearly 100 speeders entered judgement</span>, and have no record of later getting booted or towed."
+      content: "Let's look at data from August 2024, for example. <span style='background-color: var(--primary-blue); color: white;'>Each day this month, nearly 100 speeders entered judgement</span>, and show no record of later getting booted or towed."
     },
     {
       title: "",
-      content: "If we track this phenomenon over the course of a year, we see a consistent pattern: nearly one hundred speeders each day enter judgement and successfully evade enforcement, translating to <span style='background-color: var(--primary-blue); color: white;'>over 30,000 plates a year</span>."
+      content: "If we track this phenomenon over the course of a year, we see a consistent pattern: nearly a hundred speeders a day enter judgement and successfully evade enforcement, translating to <span style='background-color: var(--primary-blue); color: white;'>over 30,000 plates a year</span>."
     },
     {
       title: "",
