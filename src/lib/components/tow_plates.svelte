@@ -907,7 +907,7 @@
     font-size: 14px;
   }
 
-  :global(.tick text) {
+  :global(.visualization-container .tick text) {
     font-size: 14px !important;
   }
 
