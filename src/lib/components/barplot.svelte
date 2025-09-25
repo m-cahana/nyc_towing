@@ -54,6 +54,7 @@
       g.append("g")
         .attr("class", "axis")
         .call(d3.axisLeft(y).ticks(5).tickFormat((d) => d + "%"));
+
   
       // Bars
       g.selectAll("rect")
@@ -166,7 +167,7 @@
     :global(.axis text) {
       font-family: Helvetica, Arial, sans-serif;
       font-weight: 300;
-      font-size: clamp(10px, 1vw, 14px); /* fixed px for ticks */
+      font-size: clamp(10px, 1.5vw, 14px) !important; /* Override D3's inline styles */
     }
   
     :global(.chart-title) {
@@ -201,4 +202,5 @@
       min-width: 200px;
       max-width: 300px;
     }
+
   </style>
