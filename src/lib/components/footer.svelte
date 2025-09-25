@@ -9,23 +9,23 @@
         </p>
 
         <p class = 'methodology'>
-            Since 30,000 plates is too many to visualize, each circle shown in this project is meant to represent all plates that become scofflaws on a given day. All statistics in this project though (like the fact that 48% of scofflaws continue speeding after entering judgement) are drawn from the full distribution of plates.
+            Since 30,000 plates is too many to visualize, each circle shown in this project is meant to represent all plates that become scofflaws on a given day. All statistics in this project though (like the fact that 48% of scofflaws continue speeding after entering judgment) are drawn from the full distribution of plates.
         </p>
 
         <p class = 'methodology'>
-            In order to determine when a plate entered judgement, I determined when a plate accrued over $350 in unpaid fines, and then what date would be 75 days after that moment of crossing $350. That's because, according to the <a href = 'https://www.nyc.gov/site/finance/vehicles/dispute-a-ticket-faqs.page' target="_blank" rel="noopener noreferrer" >NYC Department of Finance</a>, a camera violation goes into judgement if you don't pay or dispute it within 75 days, and a plate becomes eligible for booting/towing if it has <a href = 'https://www.nyc.gov/site/finance/vehicles/services-tickets-in-judgment.page' target="_blank" rel="noopener noreferrer" >over $350 of tickets in judgement</a>.
+            In order to determine when a plate entered judgment, I determined when a plate accrued over $350 in unpaid fines, and then what date would be 75 days after that moment of crossing $350. That's because, according to the <a href = 'https://www.nyc.gov/site/finance/vehicles/dispute-a-ticket-faqs.page' target="_blank" rel="noopener noreferrer" >NYC Department of Finance</a>, a camera violation goes into judgment if you don't pay or dispute it within 75 days, and a plate becomes eligible for booting/towing if it has <a href = 'https://www.nyc.gov/site/finance/vehicles/services-tickets-in-judgment.page' target="_blank" rel="noopener noreferrer" >over $350 of tickets in judgment</a>.
         </p>
 
         <p class = 'methodology'>
-            Note that this determination of judgement is incomplete, in that I'm only considering school zone speeding violations here. In reality, plates can enter judgement from other violations too. But the focus of this project is on school zone speeding violations specifically. 
+            Note that this determination of judgment is incomplete, in that I'm only considering school zone speeding violations here. In reality, plates can enter judgment from other violations too. But the focus of this project is on school zone speeding violations specifically. 
         </p>
 
         <p class = 'methodology'>
-            To determine whether plates in judgement were later towed or booted, I simply checked whether they had any tows/boots occur after the date on which they entered judgement.
+            To determine whether plates in judgment were later towed or booted, I simply checked whether they had any tows/boots occur after the date on which they entered judgment.
         </p>
 
         <p class = 'methodology'>
-            Some may wonder why I didn't try to determine the share of plates entering judgement that actually get towed by the city. This would shed light on how well the city's enforcement system is working. And it'd be a very interesting metric to compute, but unfortunately because the city only reports <span class = 'italic'>whether</span> a fine gets paid, not <span class = 'italic'>when</span> it gets paid, this metric is impossible to compute with public data. 
+            Some may wonder why I didn't try to determine the share of plates entering judgment that actually get towed by the city. This would shed light on how well the city's enforcement system is working. And it'd be a very interesting metric to compute, but unfortunately because the city only reports <span class = 'italic'>whether</span> a fine gets paid, not <span class = 'italic'>when</span> it gets paid, this metric is impossible to compute with public data. 
         </p>
     </div>
 </footer>

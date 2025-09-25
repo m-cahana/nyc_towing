@@ -37,23 +37,23 @@
   const scrollSections = [
     {
       title: "",
-      content: "Let's look at data from August 2024, for example. <span style='background-color: var(--primary-blue); color: white;'>Each day this month, nearly 100 speeders entered judgement</span>, and show no record of later getting booted or towed."
+      content: "Let's look at data from August 2024, for example. <span style='background-color: var(--primary-blue); color: white;'>Each day this month, nearly 100 speeders entered judgment</span>, and show no record of later getting booted or towed."
     },
     {
       title: "",
-      content: "If we track this phenomenon over the course of a year, we see a consistent pattern: nearly a hundred speeders a day enter judgement and successfully evade enforcement, translating to <span style='background-color: var(--primary-blue); color: white;'>over 30,000 plates a year</span>."
+      content: "If we track this phenomenon over the course of a year, we see a consistent pattern: nearly a hundred speeders a day enter judgment and successfully evade enforcement, translating to <span style='background-color: var(--primary-blue); color: white;'>over 30,000 plates a year</span>."
     },
     {
       title: "",
-      content: "Since these plates don't get booted or towed, they're free to continue speeding. <span style='background-color: var(--worst-offenders); color: white;'>Many of them (colored in dark blue) speed again after entering judgement."
+      content: "Since these plates don't get booted or towed, they're free to continue speeding. <span style='background-color: var(--worst-offenders); color: white;'>Many of them (colored in dark blue) speed again after entering judgment."
     },
     {
       title: "",
-      content: "In fact, <span style='background-color: var(--worst-offenders); color: white;'>48% of these drivers keep speeding after entering judgement</span>, committing violations that would have never happened if the city comprehensively enforced the law."
+      content: "In fact, <span style='background-color: var(--worst-offenders); color: white;'>48% of these drivers keep speeding after entering judgment</span>, committing violations that would have never happened if the city comprehensively enforced the law."
     }, 
     {
       title: "",
-      content: "Here's an example of a driver who kept on speeding long after entering judgement. If you click on dots to the right, you can view a few other examples."
+      content: "Here's an example of a driver who kept on speeding long after entering judgment. If you click on dots to the right, you can view a few other examples."
     }
   ];
 
@@ -163,7 +163,7 @@
       .attr('class', 'axis-label')
       .attr('text-anchor', 'middle')
       .attr('transform', `rotate(-90) translate(${-innerHeight/2}, ${-margin.left + 75})`)
-      .text('Number of plates entering judgement');
+      .text('Number of plates entering judgment');
 
     topPlates = data;
 
@@ -765,7 +765,7 @@
             .attr('text-anchor', 'left')
             .attr('opacity', 0)
             .text(() => {
-              return `${targetNode.plate} enters judgement on ${d3.timeFormat("%B %d, %Y")(nextDay)}`;
+              return `${targetNode.plate} enters judgment on ${d3.timeFormat("%B %d, %Y")(nextDay)}`;
             })
             .transition()
             .duration(500)
