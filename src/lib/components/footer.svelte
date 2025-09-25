@@ -5,11 +5,11 @@
 
         <h2>Methodology</h2>
         <p class = 'methodology'>
-            Data on fines were scraped from New York City's <a href = 'https://data.cityofnewyork.us/resource/uvbq-3m68.json' target="_blank" rel="noopener noreferrer" >public database</a>. Data on booting/towing cases were scraped from <a href = 'https://data.cityofnewyork.us/City-Government/DOF-Scofftow-Case-Information/qmh3-uvgq/about_data' target="_blank" rel="noopener noreferrer" >NYC's Open Data Portal</a>. 
+            Data on fines were scraped from New York City's <a href = 'https://data.cityofnewyork.us/resource/uvbq-3m68.json' target="_blank" rel="noopener noreferrer" >public database</a>. Data on booting/towing cases were scraped from <a href = 'https://data.cityofnewyork.us/City-Government/DOF-Scofftow-Case-Information/qmh3-uvgq/about_data' target="_blank" rel="noopener noreferrer" >NYC's Open Data Portal</a>. Data was most recently pulled on September 24, 2025.
         </p>
 
         <p class = 'methodology'>
-            Since 30,000 plates is too many to visualize, each circle shown in this project is meant to represent all plates that become scofflaws on a given day. All statistics in this project though (like the fact that 48% of scofflaws continue speeding after entering judgment) are drawn from the full distribution of plates.
+            Since 30,000 plates is too many to visualize, each circle shown in this project is meant to represent all plates that become scofflaws on a given day. All statistics in this project though (like the fact that 50% of scofflaws continue speeding after entering judgment) are drawn from the full distribution of plates.
         </p>
 
         <p class = 'methodology'>
@@ -22,6 +22,10 @@
 
         <p class = 'methodology'>
             To determine whether plates in judgment were later towed or booted, I simply checked whether they had any tows/boots occur after the date on which they entered judgment.
+        </p>
+
+        <p class = 'methodology'>
+            The $23 million figure is the total amount of fines due, but unpaid, among 2024 scofflaws (that is, among plates that entered judgment in 2024 and are yet to be booted/towed). The 85,000 figure is the total number of school zone violations committed by 2024 scofflaws <span class = 'italic'>after</span> they entered judgment.
         </p>
 
         <p class = 'methodology'>

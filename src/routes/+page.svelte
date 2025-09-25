@@ -43,8 +43,8 @@
     <TowPlates />
 
     <p>
-        These scofflaws represent over $24 million in lost revenue for the city, in the form of uncollected fines. 
-        More importantly, they represent a continued risk to public safety, racking up over 80,000 school zone violations that would have never occurred if the city's laws were properly enforced. 
+        These scofflaws represent nearly $23 million in lost revenue for the city, in the form of uncollected fines. 
+        More importantly, they represent a continued risk to public safety, racking up over 85,000 school zone violations that would have never occurred if the city's laws were properly enforced. 
     </p>
 
     <p>

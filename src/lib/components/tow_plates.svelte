@@ -41,7 +41,7 @@
     },
     {
       title: "",
-      content: "If we track this phenomenon over the course of a year, we see a consistent pattern: nearly a hundred speeders a day enter judgment and successfully evade enforcement, translating to <span style='background-color: var(--primary-blue); color: white;'>over 30,000 plates a year</span>."
+      content: "If we track this phenomenon over the course of a year, we see a consistent pattern: nearly a hundred speeders a day enter judgment and successfully evade enforcement, translating to <span style='background-color: var(--primary-blue); color: white;'>nearly 30,000 plates a year</span>."
     },
     {
       title: "",
@@ -49,7 +49,7 @@
     },
     {
       title: "",
-      content: "In fact, <span style='background-color: var(--worst-offenders); color: white;'>48% of these drivers keep speeding after entering judgment</span>, committing violations that would have never happened if the city comprehensively enforced the law."
+      content: "In fact, <span style='background-color: var(--worst-offenders); color: white;'>50% of these drivers keep speeding after entering judgment</span>, committing violations that would have never happened if the city comprehensively enforced the law."
     }, 
     {
       title: "",
@@ -931,7 +931,7 @@
   :global(.axis-label) {
     font-family: Helvetica, Arial, sans-serif;
     font-weight: 300;
-    font-size: 18px;
+    font-size: clamp(18px, 1.5vw, 18px);
   }
 
   :global(.stack-label) {
