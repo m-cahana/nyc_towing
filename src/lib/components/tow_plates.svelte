@@ -272,6 +272,7 @@
   async function updateVisualization(currentSection) {
     if (!svg || !data || data.length === 0) return;
 
+
     // Add different effects based on the current section
     if (currentSection === 0) {
 
