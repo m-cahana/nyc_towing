@@ -11,10 +11,10 @@
         height = 500,
         CIRCLE_RADIUS = 5,
         CIRCLE_OPACITY = 0.8,
-        selectedPlate = 'KJM6620',
-        sidePlates = ['JCC5743', 'JUA957', 
-        '126BH0', 'LCT2817', 'LCB8694', 
-        'W69PBV', 'JZH5211', 'RTH0590'],
+        selectedPlate = 'KUB5440',
+        sidePlates = ['KHD6094', 'MJF5321', 
+        'LFM4533', 'KZB6485', 'LAC2752', 
+        'K72RCF', 'JSF2653', 'KEE6882'],
         margin = { top: 20, right: 20, bottom: 100, left: 60 },
     } = $props();
 
@@ -103,10 +103,13 @@
 
     // Create SVG
     svg = d3.select(container)
-      .append('svg')
-      .attr('width', width)
-      .attr('height', height)
-      .style('overflow', 'visible'); // Allow overflow for the SVG
+    .append('svg')
+    .attr('viewBox', [0, 0, width, height])
+    .attr('preserveAspectRatio', 'xMidYMid meet')
+    .style('width', '100%')
+    .style('height', 'auto')
+    .style('overflow', 'visible');
+
 
     // Add a clip path to prevent overflow in sections 0-3
     svg.append('defs')
@@ -307,6 +310,7 @@
         .attr('fill', 'var(--primary-blue)');
     }
       
+    // full year
     else if (currentSection === 1) {
       // Reset to full view
       const { x: xScale, y: yScale } = regenerateAxes(data, "%b %Y");
@@ -380,8 +384,12 @@
         .attr('cy', d => yScale(d.n_plates))
         .attr('opacity', CIRCLE_OPACITY)
         .attr('fill', 'var(--primary-blue)');
+
+
+        svg.selectAll('.divider-label').remove()
     }
 
+    // color worst offenders
     if (currentSection === 2) {
       nodes.transition()
         .duration(500)
@@ -390,8 +398,10 @@
 
       svg.selectAll('.grid-divider').remove();
       svg.selectAll('.grid-divider-label').remove();
+      svg.selectAll('.divider-label').remove(); // Remove any leftover divider labels from section 4
     }
 
+    // split into grid
     if (currentSection === 3) {
 
     // Hide axes and labels
@@ -402,6 +412,7 @@
 
     svg.selectAll('.connect-line').remove();
     svg.selectAll('.violation-label,.stack-label, .divider-label, .violation-divider, .title-label').remove();
+    svg.selectAll('.divider-label').remove(); // Remove any leftover divider labels from section 4
     svg.style('overflow', 'visible');
 
     const NODE_SPACING = 20;
@@ -498,6 +509,8 @@
       .style('cursor', 'pointer');
 
   }
+
+    // zoom in on selected plates
     if (currentSection === 4) {
       // Remove clip path for section 4 to allow overflow
       mainGroup.attr('clip-path', null);

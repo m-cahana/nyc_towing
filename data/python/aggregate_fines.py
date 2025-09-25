@@ -109,7 +109,7 @@ def get_threshold_crossing_dates(fines, threshold=350):
 # *********************
 
 fines = pd.DataFrame()
-for year in range(2015, 2026):
+for year in range(2023, 2026):
     print(f'year: {year}')
     yearly_fines = pd.read_csv(f'../processed/school_zone_fines_{year}.csv')
     yearly_fines = process_fines(yearly_fines)

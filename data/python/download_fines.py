@@ -85,9 +85,8 @@ download_school_zone_fines(
     batch_size=1_000_000,
     year=2025) 
 
-# download earlier years
-for year in range(2015, 2024):
-    download_school_zone_fines(
-    output_file=f'../processed/school_zone_fines_{year}.csv', 
+# download 2023
+download_school_zone_fines(
+    output_file='../processed/school_zone_fines_2023.csv', 
     batch_size=1_000_000,
-    year=year) 
+    year=2023) 

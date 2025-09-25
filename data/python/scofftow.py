@@ -5,7 +5,7 @@ import pandas as pd
 # *********************
 
 # sourced from https://data.cityofnewyork.us/City-Government/DOF-Scofftow-Case-Information/qmh3-uvgq/about_data
-df = pd.read_csv('../raw/DOF_Scofftow_Case_Information_20250422.csv')
+df = pd.read_csv('../raw/DOF_Scofftow_Case_Information_20250924.csv')
 
 # *********************
 # data cleaning

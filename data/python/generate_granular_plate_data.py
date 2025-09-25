@@ -15,9 +15,10 @@ fines = pd.concat([
 # *********************
 
 plates = [
-    'KJM6620', 'JCC5743', 'JUA957',
-    '126BH0', 'LCT2817', 'LCB8694', 
-    'W69PBV', 'JZH5211', 'RTH0590']
+    'KUB5440', 'KHD6094', 'MJF5321', 
+    'LFM4533', 'KZB6485', 'LAC2752', 
+    'K72RCF', 'JSF2653', 'KEE6882'
+]
 
 selected_fines = fines[fines['plate'].isin(plates)]
 

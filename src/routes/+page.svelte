@@ -12,7 +12,7 @@
 
 <main>
 	<h1>Tens of Thousands of Recidivist Speeders Evaded The Law Last Year</h1>
-    <div class="subtitle">June 2025</div>
+    <div class="subtitle">September 2025</div>
 
     <p>
         As <a href="https://streetsblog.org/2025/04/10/thousands-of-cars-speed-rampantly-through-new-york-citys-school-zones-without-facing-consequences/" target="_blank">Streetsblog reported in April</a>, thousands of cars speed rampantly through New York City's school zones without facing consequences. This occurs, in part, because the city doesn't cap the number of speeding fines a driver can rack up; as long as a driver pays their fines, they can continue speedingly endlessly.
@@ -33,11 +33,11 @@
     </p>
 
     <p>
-        Drivers with 100+ violations, mostly unpaid, are directly at odds with the city's laws. The rules currently dictate that any driver who accrues over $350 in fines (which translates to 5 unpaid school zone tickets when you factor in late fees), and doesn't pay them within 75 days, will be deemed "in judgement". In theory, vehicles in judgement should be booted, and then towed if a driver doesn't pay up their judgement debt <a href="https://www.nyc.gov/site/finance/vehicles/services-booting.page" target="_blank">within 48 hours of the boot</a>. These laws are meant to ensure drivers actually pay their fines, and face real inconvenience when ignoring them. If properly enforced, they would make it impossible for a driver to rack up 100 violations while only paying fines on a quarter of them.
+        Drivers with 100+ violations, mostly unpaid, are directly at odds with the city's laws. The rules currently dictate that any driver who accrues over $350 in fines (which translates to 5 unpaid school zone tickets when you factor in late fees), and doesn't pay them within 75 days, will be deemed "in judgment". In theory, vehicles in judgment should be booted, and then towed if a driver doesn't pay up their judgment debt <a href="https://www.nyc.gov/site/finance/vehicles/services-booting.page" target="_blank">within 48 hours of the boot</a>. These laws are meant to ensure drivers actually pay their fines, and face real inconvenience when ignoring them. If properly enforced, they would make it impossible for a driver to rack up 100 violations while only paying fines on a quarter of them.
     </p>
 
     <p>
-        But our investigation shows that there are meaningful holes in the city's enforcement. Every month, thousands of recidivist speeders enter judgement, never pay off their fine debt, and never get booted or towed either. 
+        But our investigation shows that there are meaningful holes in the city's enforcement. Every month, thousands of recidivist speeders enter judgment, never pay off their fine debt, and never get booted or towed either. 
     </p>
 
     <TowPlates />

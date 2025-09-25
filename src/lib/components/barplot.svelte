@@ -26,8 +26,10 @@
         // Create the SVG container
         const svg = d3.select("#barplot-container")
             .append("svg")
-            .attr("width", width)
-            .attr("height", height)
+            .attr("viewBox", [0, 0, width, height])
+            .attr("preserveAspectRatio", "xMidYMid meet")
+            .style("max-width", "100%")
+            .style("height", "auto")
             .append("g")
             .attr("transform", `translate(${margin.left},${margin.top})`);
 
@@ -137,7 +139,7 @@
 <style>
     #barplot-container {
         width: 100%;
-        height: 100%;
+        height: auto;
     }
 
     :global(.bar) {
@@ -151,13 +153,13 @@
     :global(.axis text) {
         font-family: Helvetica, Arial, sans-serif;
         font-weight: 300;
-        font-size: 14px;
+        font-size: clamp(14px, 1.5vw, 14px);
     }
 
     :global(.axis-label) {
         font-family: Helvetica, Arial, sans-serif;
         font-weight: 300;
-        font-size: 18px;
+        font-size: clamp(18px, 1.5vw, 18px);
     }
 
     :global(.chart-title) {
