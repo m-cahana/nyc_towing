@@ -15,7 +15,7 @@
     <div class="subtitle">September 2025</div>
 
     <p>
-        As <a href="https://streetsblog.org/2025/04/10/thousands-of-cars-speed-rampantly-through-new-york-citys-school-zones-without-facing-consequences/" target="_blank">Streetsblog reported in April</a>, thousands of cars speed rampantly through New York City's school zones without facing consequences. This occurs, in part, because the city doesn't cap the number of speeding fines a driver can rack up; as long as a driver pays their fines, they can continue speedingly endlessly.
+        As <a href="https://nyc.streetsblog.org/2025/04/16/map-quest-meet-the-citys-most-dangerous-drivers-and-where-theyre-preying-on-you" target="_blank">Streetsblog reported in April</a>, thousands of cars speed rampantly through New York City's school zones without facing consequences. This occurs, in part, because the city doesn't cap the number of speeding fines a driver can rack up; as long as a driver pays their fines, they can continue speedingly endlessly.
     </p>
 
     <p>
