@@ -87,13 +87,29 @@
         .attr("height", (d) => innerHeight - y(d.share_of_fines_paid));
   
       // Titles and labels (true px font sizes!)
-      svg
-        .append("text")
+      const titleGroup = svg
+        .append("g")
         .attr("class", "chart-title")
         .attr("text-anchor", "middle")
-        .attr("x", width / 2)
-        .attr("y", margin.top / 2)
-        .text("Drivers are less likely to pay fines the more they speed");
+        .attr("transform", `translate(${width / 2}, ${margin.top / 2})`);
+      
+      if (width <= 600) {
+        // Two lines for small screens
+        titleGroup
+          .append("text")
+          .attr("y", "-8")
+          .text("Drivers are less likely to pay fines");
+        titleGroup
+          .append("text")
+          .attr("y", "8")
+          .text("the more they speed");
+      } else {
+        // Single line for larger screens
+        titleGroup
+          .append("text")
+          .attr("y", "0")
+          .text("Drivers are less likely to pay fines the more they speed");
+      }
   
       svg
         .append("text")
