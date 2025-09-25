@@ -907,6 +907,10 @@
     font-size: 14px;
   }
 
+  :global(.tick text) {
+    font-size: 14px !important;
+  }
+
   :global(.x-axis text) {
     transform: rotate(-45deg);
     text-anchor: end;
